@@ -1,0 +1,83 @@
+export interface Case {
+  id: string;
+  org_id: string;
+  title: string;
+  client_name: string | null;
+  jurisdiction: string | null;
+  court: string | null;
+  case_number: string | null;
+  parties: { name: string; role?: string }[];
+  status: "open" | "active" | "closed";
+  description: string | null;
+  opened_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CaseDocument {
+  id: string;
+  case_id: string;
+  file_name: string;
+  storage_path: string;
+  mime_type: string | null;
+  size: number | null;
+  status: "uploaded" | "processing" | "ready" | "failed";
+  error: string | null;
+  page_count: number | null;
+  created_at: string;
+}
+
+export interface Note {
+  id: string;
+  case_id: string;
+  title: string | null;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Deadline {
+  id: string;
+  case_id: string;
+  title: string;
+  type: "hearing" | "filing" | "reminder";
+  due_at: string;
+  done: boolean;
+}
+
+export interface StrategyItem {
+  id: string;
+  text: string;
+}
+
+export interface Strategy {
+  id: string;
+  case_id: string;
+  objectives: StrategyItem[];
+  arguments: StrategyItem[];
+  risks: StrategyItem[];
+  timeline: StrategyItem[];
+}
+
+export interface ChatThread {
+  id: string;
+  case_id: string;
+  title: string;
+  created_at: string;
+}
+
+export interface Citation {
+  label: number;
+  documentId: string;
+  documentName: string;
+  page: number | null;
+}
+
+export interface ChatMessage {
+  id: string;
+  thread_id: string;
+  role: "user" | "assistant";
+  content: string;
+  citations: Citation[];
+  created_at: string;
+}

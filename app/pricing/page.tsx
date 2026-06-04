@@ -1,109 +1,69 @@
-import Link from "next/link";
-import { LinkButton } from "@/components/ui";
+import { Container, SiteHeader, SiteFooter } from "@/components/brand";
+import { PricingTable } from "@/components/pricing-table";
 
-const tiers = [
+const faqs = [
   {
-    name: "Free",
-    price: "$0",
-    blurb: "Try it on a single matter.",
-    features: ["1 case", "Limited AI chats", "Document upload"],
-    cta: "Start free",
+    q: "How is pricing calculated?",
+    a: "Per seat, per month — one seat per lawyer. Add or remove seats anytime; annual billing saves roughly 17%.",
   },
   {
-    name: "Solo",
-    price: "$39",
-    blurb: "For independent lawyers.",
-    features: [
-      "Unlimited cases",
-      "Document chat with citations",
-      "Notes, strategy & deadlines",
-    ],
-    cta: "Choose Solo",
-    highlight: true,
+    q: "Is my client data private?",
+    a: "Yes. Every organization's data is isolated at the database level, encrypted, and never used to train AI models.",
   },
   {
-    name: "Firm",
-    price: "$69",
-    blurb: "For small & growing firms.",
-    features: [
-      "Everything in Solo",
-      "Team seats & roles",
-      "Higher AI usage limits",
-      "Priority processing",
-    ],
-    cta: "Choose Firm",
+    q: "Which file types can I upload?",
+    a: "PDF, DOCX, and plain text today. Files are processed so the AI can answer questions and cite the source page.",
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    blurb: "For larger practices.",
-    features: ["SSO / SAML", "Data residency", "Audit logs & SLA", "Onboarding"],
-    cta: "Contact sales",
+    q: "Does the AI give legal advice?",
+    a: "No. LexBoard is a productivity tool. It surfaces and summarizes your documents with citations, but you remain the lawyer.",
   },
 ];
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link href="/" className="text-lg font-bold tracking-tight text-primary">
-          Lex<span className="text-accent">Board</span>
-        </Link>
-        <LinkButton href="/login" size="sm">
-          Sign in
-        </LinkButton>
-      </header>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Simple, per-seat pricing
-          </h1>
-          <p className="mt-3 text-muted">
-            Priced per lawyer, per month. Save with annual billing.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {tiers.map((t) => (
-            <div
-              key={t.name}
-              className={`flex flex-col rounded-xl border bg-card p-6 shadow-sm ${
-                t.highlight ? "border-primary ring-1 ring-primary" : "border-border"
-              }`}
-            >
-              <h3 className="text-lg font-semibold text-foreground">{t.name}</h3>
-              <p className="text-sm text-muted">{t.blurb}</p>
-              <p className="mt-4 text-2xl font-bold text-foreground">
-                {t.price}
-                {t.price !== "Custom" && (
-                  <span className="text-sm font-normal text-muted">
-                    {" "}
-                    / seat / mo
-                  </span>
-                )}
+      <main className="flex-1">
+        <section className="py-16">
+          <Container>
+            <div className="mx-auto max-w-2xl text-center">
+              <h1 className="font-serif text-5xl font-semibold tracking-tight text-foreground">
+                Simple, per-seat pricing
+              </h1>
+              <p className="mt-4 text-xl text-muted">
+                Priced per lawyer, per month. Start free, upgrade as you grow.
               </p>
-              <ul className="mt-4 flex-1 space-y-1.5 text-sm text-muted">
-                {t.features.map((f) => (
-                  <li key={f}>✓ {f}</li>
-                ))}
-              </ul>
-              <LinkButton
-                href="/login"
-                variant={t.highlight ? "primary" : "secondary"}
-                className="mt-6 w-full"
-              >
-                {t.cta}
-              </LinkButton>
             </div>
-          ))}
-        </div>
+            <div className="mt-12">
+              <PricingTable />
+            </div>
+            <p className="mt-10 text-center text-sm text-muted">
+              All plans include encryption, strict tenant isolation, and a
+              guarantee that we never train models on your data.
+            </p>
+          </Container>
+        </section>
 
-        <p className="mt-10 text-center text-sm text-muted">
-          All plans include encryption, strict tenant isolation, and a guarantee
-          that we never train models on your data.
-        </p>
+        <section className="border-t border-border bg-card py-16">
+          <Container className="max-w-3xl">
+            <h2 className="text-center font-serif text-3xl font-semibold tracking-tight text-foreground">
+              Frequently asked questions
+            </h2>
+            <dl className="mt-10 divide-y divide-border">
+              {faqs.map((f) => (
+                <div key={f.q} className="py-5">
+                  <dt className="text-lg font-semibold text-foreground">{f.q}</dt>
+                  <dd className="mt-2 text-base text-muted">{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </Container>
+        </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

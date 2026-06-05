@@ -138,14 +138,17 @@ export function ChatPanel({
               {m.role === "assistant" && m.citations.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-200 pt-2">
                   {m.citations.map((c) => (
-                    <span
+                    <a
                       key={c.label}
-                      className="rounded bg-white px-1.5 py-0.5 text-xs text-muted ring-1 ring-slate-200"
-                      title={c.documentName}
+                      href={`/cases/${caseId}/documents/${c.documentId}${c.page ? `?page=${c.page}` : ""}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded bg-white px-1.5 py-0.5 text-xs text-muted ring-1 ring-slate-200 transition-colors hover:text-primary hover:ring-primary/40"
+                      title={`Open ${c.documentName}${c.page ? ` at page ${c.page}` : ""}`}
                     >
                       [{c.label}] {c.documentName}
                       {c.page ? ` p.${c.page}` : ""}
-                    </span>
+                    </a>
                   ))}
                 </div>
               )}

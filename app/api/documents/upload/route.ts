@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { getCase } from "@/lib/data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ingestDocument } from "@/lib/ingest";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -70,6 +71,17 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+
+  await recordAudit({
+    orgId: caseRow.org_id,
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    action: "document.upload",
+    targetType: "document",
+    targetId: doc.id,
+    caseId,
+    summary: `Uploaded “${file.name}”`,
+  });
 
   // Ingest inline (MVP). For large files, move this to a background queue.
   try {

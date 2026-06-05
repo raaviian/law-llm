@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { getCase } from "@/lib/data";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAnthropic, CHAT_MODEL } from "@/lib/ai/anthropic";
+import { streamGemini, type GeminiContent } from "@/lib/ai/gemini";
 import { retrieveContext, buildContextBlock, SYSTEM_PROMPT } from "@/lib/ai/rag";
+import { recordAudit } from "@/lib/audit";
 import type { Citation } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -62,6 +63,17 @@ export async function POST(req: Request) {
     content: message,
   });
 
+  await recordAudit({
+    orgId: caseRow.org_id,
+    actorId: userId,
+    actorEmail: session.user.email,
+    action: "chat.query",
+    targetType: "chat",
+    targetId: threadId,
+    caseId,
+    summary: `Asked: “${message.slice(0, 80)}”`,
+  });
+
   // Retrieve relevant document chunks for this case.
   const chunks = await retrieveContext(userId, caseId, message);
   const citations: Citation[] = chunks.map((c, i) => ({
@@ -72,12 +84,12 @@ export async function POST(req: Request) {
   }));
   const contextBlock = buildContextBlock(chunks);
 
-  const priorMessages = (history ?? []).map((m) => ({
-    role: m.role as "user" | "assistant",
-    content: m.content as string,
+  // Map prior turns to Gemini's format (assistant -> "model").
+  const priorContents: GeminiContent[] = (history ?? []).map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content as string }],
   }));
 
-  const anthropic = getAnthropic();
   const encoder = new TextEncoder();
   const finalThreadId = threadId;
 
@@ -85,25 +97,25 @@ export async function POST(req: Request) {
     async start(controller) {
       let full = "";
       try {
-        const llmStream = anthropic.messages.stream({
-          model: CHAT_MODEL,
-          max_tokens: 1500,
+        const contents: GeminiContent[] = [
+          ...priorContents,
+          {
+            role: "user",
+            parts: [
+              {
+                text: `Context from this case's documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${message}`,
+              },
+            ],
+          },
+        ];
+
+        for await (const delta of streamGemini({
           system: SYSTEM_PROMPT,
-          messages: [
-            ...priorMessages,
-            {
-              role: "user",
-              content: `Context from this case's documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${message}`,
-            },
-          ],
-        });
-
-        llmStream.on("text", (text) => {
-          full += text;
-          controller.enqueue(encoder.encode(text));
-        });
-
-        await llmStream.finalMessage();
+          contents,
+        })) {
+          full += delta;
+          controller.enqueue(encoder.encode(delta));
+        }
       } catch (err) {
         const msg =
           err instanceof Error ? err.message : "The assistant failed to respond.";

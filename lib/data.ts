@@ -1,6 +1,7 @@
 import "server-only";
 import { createUserClient } from "@/lib/supabase/server";
 import type {
+  AuditLog,
   Case,
   CaseDocument,
   ChatMessage,
@@ -50,6 +51,19 @@ export async function listDocuments(
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as CaseDocument[];
+}
+
+export async function getDocument(
+  userId: string,
+  documentId: string,
+): Promise<CaseDocument | null> {
+  const supabase = await createUserClient(userId);
+  const { data } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("id", documentId)
+    .maybeSingle();
+  return (data as CaseDocument) ?? null;
 }
 
 export async function listNotes(
@@ -119,6 +133,20 @@ export async function listMessages(
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as ChatMessage[];
+}
+
+export async function listAuditLogs(
+  userId: string,
+  limit = 100,
+): Promise<AuditLog[]> {
+  const supabase = await createUserClient(userId);
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("id, actor_email, action, target_type, case_id, summary, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AuditLog[];
 }
 
 export async function getUpcomingDeadlines(

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUserAndOrg } from "@/lib/session";
 import { createUserClient } from "@/lib/supabase/server";
+import { recordAudit } from "@/lib/audit";
 
 // --- Cases -------------------------------------------------------------------
 const caseSchema = z.object({
@@ -29,12 +30,23 @@ export async function createCase(formData: FormData) {
     .single();
   if (error) throw new Error(error.message);
 
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.create",
+    targetType: "case",
+    targetId: data.id,
+    caseId: data.id,
+    summary: `Created case “${parsed.title}”`,
+  });
+
   revalidatePath("/dashboard");
   redirect(`/cases/${data.id}`);
 }
 
 export async function updateCase(caseId: string, formData: FormData) {
-  const { user } = await requireUserAndOrg();
+  const { user, orgId } = await requireUserAndOrg();
   const parsed = caseSchema.partial().parse(Object.fromEntries(formData));
   const supabase = await createUserClient(user.id);
 
@@ -44,14 +56,37 @@ export async function updateCase(caseId: string, formData: FormData) {
     .eq("id", caseId);
   if (error) throw new Error(error.message);
 
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: "Updated case details",
+  });
+
   revalidatePath(`/cases/${caseId}`);
 }
 
 export async function deleteCase(caseId: string) {
-  const { user } = await requireUserAndOrg();
+  const { user, orgId } = await requireUserAndOrg();
   const supabase = await createUserClient(user.id);
   const { error } = await supabase.from("cases").delete().eq("id", caseId);
   if (error) throw new Error(error.message);
+
+  // case_id is set null here because the case row no longer exists.
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.delete",
+    targetType: "case",
+    targetId: caseId,
+    summary: "Deleted a case",
+  });
+
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
@@ -71,6 +106,15 @@ export async function createNote(caseId: string, formData: FormData) {
     body,
   });
   if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "note.create",
+    targetType: "note",
+    caseId,
+    summary: title ? `Added note “${title}”` : "Added a note",
+  });
   revalidatePath(`/cases/${caseId}/notes`);
 }
 
@@ -97,6 +141,15 @@ export async function createDeadline(caseId: string, formData: FormData) {
     due_at: new Date(due).toISOString(),
   });
   if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "deadline.create",
+    targetType: "deadline",
+    caseId,
+    summary: `Added ${type} “${title}”`,
+  });
   revalidatePath(`/cases/${caseId}/deadlines`);
 }
 
@@ -178,21 +231,41 @@ export async function createThread(caseId: string): Promise<string> {
     .select("id")
     .single();
   if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "thread.create",
+    targetType: "chat",
+    targetId: data.id,
+    caseId,
+    summary: "Started a new chat",
+  });
   revalidatePath(`/cases/${caseId}/chat`);
   return data.id as string;
 }
 
 export async function deleteDocument(caseId: string, documentId: string) {
-  const { user } = await requireUserAndOrg();
+  const { user, orgId } = await requireUserAndOrg();
   const supabase = await createUserClient(user.id);
   const { data: doc } = await supabase
     .from("documents")
-    .select("storage_path")
+    .select("storage_path, file_name")
     .eq("id", documentId)
     .maybeSingle();
   if (doc?.storage_path) {
     await supabase.storage.from("case-files").remove([doc.storage_path]);
   }
   await supabase.from("documents").delete().eq("id", documentId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "document.delete",
+    targetType: "document",
+    targetId: documentId,
+    caseId,
+    summary: doc?.file_name ? `Deleted “${doc.file_name}”` : "Deleted a document",
+  });
   revalidatePath(`/cases/${caseId}/documents`);
 }

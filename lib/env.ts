@@ -15,8 +15,8 @@ export const env = {
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET ?? "",
 
-  anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
-  anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+  geminiKey: process.env.GEMINI_API_KEY ?? "",
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
 
   voyageKey: process.env.VOYAGE_API_KEY ?? "",
   voyageModel: process.env.VOYAGE_MODEL ?? "voyage-law-2",

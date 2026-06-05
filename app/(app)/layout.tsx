@@ -23,7 +23,10 @@ export default async function AppLayout({
               <NavLink href="/dashboard" prefixes={["/dashboard", "/cases"]}>
                 Cases
               </NavLink>
-              <NavLink href="/settings/billing" prefixes={["/settings"]}>
+              <NavLink href="/settings/audit" prefixes={["/settings/audit"]}>
+                Activity
+              </NavLink>
+              <NavLink href="/settings/billing" prefixes={["/settings/billing"]}>
                 Billing
               </NavLink>
             </nav>

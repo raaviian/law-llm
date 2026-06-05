@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { listDocuments } from "@/lib/data";
 import { deleteDocument } from "@/lib/actions";
@@ -47,9 +48,12 @@ export default async function DocumentsPage({
                 className="flex items-center justify-between gap-4 px-5 py-3"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
+                  <Link
+                    href={`/cases/${caseId}/documents/${d.id}`}
+                    className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
+                  >
                     {d.file_name}
-                  </p>
+                  </Link>
                   <p className="text-xs text-muted">
                     {formatBytes(d.size)}
                     {d.page_count ? ` · ${d.page_count} pages` : ""} ·{" "}

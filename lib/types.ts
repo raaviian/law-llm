@@ -17,6 +17,7 @@ export interface Case {
 export interface CaseDocument {
   id: string;
   case_id: string;
+  org_id: string;
   file_name: string;
   storage_path: string;
   mime_type: string | null;
@@ -71,6 +72,16 @@ export interface Citation {
   documentId: string;
   documentName: string;
   page: number | null;
+}
+
+export interface AuditLog {
+  id: string;
+  actor_email: string | null;
+  action: string;
+  target_type: string | null;
+  case_id: string | null;
+  summary: string | null;
+  created_at: string;
 }
 
 export interface ChatMessage {

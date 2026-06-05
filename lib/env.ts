@@ -16,7 +16,7 @@ export const env = {
   supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET ?? "",
 
   geminiKey: process.env.GEMINI_API_KEY ?? "",
-  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
 
   voyageKey: process.env.VOYAGE_API_KEY ?? "",
   voyageModel: process.env.VOYAGE_MODEL ?? "voyage-law-2",

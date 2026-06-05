@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { extractPages } from "@/lib/ai/extract";
 import { chunkPages } from "@/lib/ai/chunk";
 import { embedTexts } from "@/lib/ai/embeddings";
+import { analyzeDocument } from "@/lib/ai/analyze";
 
 const EMBED_BATCH = 100;
 
@@ -61,12 +62,29 @@ export async function ingestDocument(documentId: string): Promise<void> {
       if (insErr) throw new Error(`Chunk insert failed: ${insErr.message}`);
     }
 
+    // Auto-summary + key facts (non-fatal: a failure here still leaves the
+    // document fully searchable/chattable).
+    let summary: string | null = null;
+    let keyFacts: Record<string, unknown> = {};
+    try {
+      const fullText = pages.map((p) => p.text).join("\n\n");
+      const analysis = await analyzeDocument(doc.file_name, fullText);
+      if (analysis) {
+        summary = analysis.summary || null;
+        keyFacts = (analysis.key_facts ?? {}) as Record<string, unknown>;
+      }
+    } catch (err) {
+      console.error("document analysis failed:", err);
+    }
+
     await admin
       .from("documents")
       .update({
         status: "ready",
         page_count: pages.length,
         error: null,
+        summary,
+        key_facts: keyFacts,
       })
       .eq("id", documentId);
   } catch (err) {

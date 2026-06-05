@@ -25,6 +25,13 @@ export interface CaseDocument {
   status: "uploaded" | "processing" | "ready" | "failed";
   error: string | null;
   page_count: number | null;
+  summary: string | null;
+  key_facts: {
+    parties?: string[];
+    key_dates?: { date: string; event: string }[];
+    obligations?: string[];
+    amounts?: string[];
+  };
   created_at: string;
 }
 

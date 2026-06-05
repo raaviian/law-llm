@@ -118,6 +118,33 @@ export async function createNote(caseId: string, formData: FormData) {
   revalidatePath(`/cases/${caseId}/notes`);
 }
 
+export async function saveDraftNote(
+  caseId: string,
+  title: string,
+  body: string,
+) {
+  const { user, orgId } = await requireUserAndOrg();
+  if (!body.trim()) return;
+  const supabase = await createUserClient(user.id);
+  await supabase.from("notes").insert({
+    case_id: caseId,
+    org_id: orgId,
+    author_id: user.id,
+    title: title || "Draft",
+    body,
+  });
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "note.create",
+    targetType: "note",
+    caseId,
+    summary: `Saved draft “${title || "Draft"}”`,
+  });
+  revalidatePath(`/cases/${caseId}/notes`);
+}
+
 export async function deleteNote(caseId: string, noteId: string) {
   const { user } = await requireUserAndOrg();
   const supabase = await createUserClient(user.id);

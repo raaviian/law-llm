@@ -59,6 +59,11 @@ export default async function DocumentsPage({
                     {d.page_count ? ` · ${d.page_count} pages` : ""} ·{" "}
                     {formatDate(d.created_at)}
                   </p>
+                  {d.summary && (
+                    <p className="mt-0.5 line-clamp-2 max-w-xl text-xs text-muted">
+                      {d.summary}
+                    </p>
+                  )}
                   {d.status === "failed" && d.error && (
                     <p className="mt-0.5 text-xs text-red-600">{d.error}</p>
                   )}

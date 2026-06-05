@@ -68,6 +68,50 @@ export async function* streamGemini(opts: {
   }
 }
 
+/**
+ * One-shot JSON generation (uses responseMimeType: application/json so Gemini
+ * returns parseable JSON). Returns null if the response can't be parsed.
+ */
+export async function generateGeminiJSON<T>(opts: {
+  system?: string;
+  prompt: string;
+  model?: string;
+}): Promise<T | null> {
+  const key = requireEnv(env.geminiKey, "GEMINI_API_KEY");
+  const model = opts.model ?? CHAT_MODEL;
+  const url = `${BASE}/${model}:generateContent?key=${key}`;
+
+  const body: {
+    contents: GeminiContent[];
+    system_instruction?: { parts: { text: string }[] };
+    generationConfig: { responseMimeType: string; temperature: number };
+  } = {
+    contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+  };
+  if (opts.system) body.system_instruction = { parts: [{ text: opts.system }] };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Gemini error ${res.status}: ${detail.slice(0, 300)}`);
+  }
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 /** Non-streaming convenience for summaries/drafting. */
 export async function generateGemini(opts: {
   system?: string;

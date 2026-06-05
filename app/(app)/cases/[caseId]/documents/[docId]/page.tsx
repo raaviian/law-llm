@@ -71,6 +71,27 @@ export default async function DocumentViewerPage({
         )}
       </div>
 
+      {doc.summary && (
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-foreground">AI summary</h3>
+          <p className="mt-1.5 text-sm text-foreground">{doc.summary}</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <FactList label="Parties" items={doc.key_facts?.parties} />
+            <FactList
+              label="Key dates"
+              items={doc.key_facts?.key_dates?.map(
+                (d) => `${d.date} — ${d.event}`,
+              )}
+            />
+            <FactList label="Obligations" items={doc.key_facts?.obligations} />
+            <FactList label="Amounts" items={doc.key_facts?.amounts} />
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            AI-generated from this document. Verify against the source.
+          </p>
+        </Card>
+      )}
+
       {!signedUrl ? (
         <Card className="p-8 text-center text-sm text-muted">
           Could not load this file. It may still be processing or was removed.
@@ -91,6 +112,22 @@ export default async function DocumentViewerPage({
           </div>
         </Card>
       )}
+    </div>
+  );
+}
+
+function FactList({ label, items }: { label: string; items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <ul className="mt-1 space-y-0.5 text-sm text-foreground">
+        {items.map((item, i) => (
+          <li key={i}>• {item}</li>
+        ))}
+      </ul>
     </div>
   );
 }

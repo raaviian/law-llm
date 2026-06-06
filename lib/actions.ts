@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUserAndOrg } from "@/lib/session";
 import { createUserClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { recordAudit } from "@/lib/audit";
+import { getOrgRole, canManageCase } from "@/lib/access";
+import { getCase } from "@/lib/data";
+import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
+import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
 
 // --- Cases -------------------------------------------------------------------
 const caseSchema = z.object({
@@ -89,6 +94,80 @@ export async function deleteCase(caseId: string) {
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
+}
+
+// --- Per-matter access -------------------------------------------------------
+async function assertCaseManager(caseId: string) {
+  const { user } = await requireUserAndOrg();
+  const admin = createAdminClient();
+  const { data: c } = await admin
+    .from("cases")
+    .select("org_id, created_by")
+    .eq("id", caseId)
+    .maybeSingle();
+  if (!c) throw new Error("Case not found");
+  const role = await getOrgRole(user.id, c.org_id as string);
+  if (!canManageCase(role, (c.created_by as string) ?? null, user.id)) {
+    throw new Error("Not authorized to manage access for this case");
+  }
+  return { user, admin, orgId: c.org_id as string };
+}
+
+export async function setCaseVisibility(
+  caseId: string,
+  visibility: "org" | "private",
+) {
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+  await admin.from("cases").update({ visibility }).eq("id", caseId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: `Set access to ${visibility === "private" ? "restricted" : "whole firm"}`,
+  });
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function grantCaseAccess(caseId: string, targetUserId: string) {
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+  await admin
+    .from("case_access")
+    .upsert({ case_id: caseId, user_id: targetUserId }, { onConflict: "case_id,user_id" });
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: "Granted case access to a member",
+  });
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function revokeCaseAccess(caseId: string, targetUserId: string) {
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+  await admin
+    .from("case_access")
+    .delete()
+    .eq("case_id", caseId)
+    .eq("user_id", targetUserId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: "Revoked case access from a member",
+  });
+  revalidatePath(`/cases/${caseId}`);
 }
 
 // --- Notes -------------------------------------------------------------------
@@ -224,6 +303,77 @@ export async function addStrategyItem(
       .update({ [column]: [...current, item], updated_at: new Date().toISOString() })
       .eq("case_id", caseId);
   }
+  revalidatePath(`/cases/${caseId}/strategy`);
+}
+
+export async function generateStrategy(caseId: string) {
+  const { user, orgId } = await requireUserAndOrg();
+  const c = await getCase(user.id, caseId);
+  if (!c) throw new Error("Case not found");
+
+  const chunks = await retrieveContext(
+    user.id,
+    caseId,
+    "main legal issues, client objectives, strongest arguments, risks and counter-arguments, and a timeline for the hearing",
+    12,
+  );
+  const context = buildContextBlock(chunks);
+
+  const gen = await generateCaseStrategy({
+    caseTitle: c.title,
+    court: c.court,
+    jurisdiction: c.jurisdiction,
+    context,
+  });
+  if (!gen) throw new Error("The AI could not generate a strategy. Try again.");
+
+  const toItems = (arr?: string[]) =>
+    (arr ?? [])
+      .filter((t) => t && t.trim())
+      .map((text) => ({ id: crypto.randomUUID(), text: text.trim() }));
+
+  const supabase = await createUserClient(user.id);
+  const { data: existing } = await supabase
+    .from("strategies")
+    .select("*")
+    .eq("case_id", caseId)
+    .maybeSingle();
+  const prev = (existing ?? {}) as Record<
+    string,
+    { id: string; text: string }[] | undefined
+  >;
+
+  // Append generated points to any existing (manual) ones.
+  const merge = (col: keyof GeneratedStrategy) => [
+    ...(prev[col] ?? []),
+    ...toItems(gen[col]),
+  ];
+  const payload = {
+    objectives: merge("objectives"),
+    arguments: merge("arguments"),
+    risks: merge("risks"),
+    timeline: merge("timeline"),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (existing) {
+    await supabase.from("strategies").update(payload).eq("case_id", caseId);
+  } else {
+    await supabase
+      .from("strategies")
+      .insert({ case_id: caseId, org_id: orgId, ...payload });
+  }
+
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "strategy.generate",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: "Generated court strategy with AI",
+  });
   revalidatePath(`/cases/${caseId}/strategy`);
 }
 

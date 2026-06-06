@@ -7,7 +7,15 @@ import {
   listDeadlines,
 } from "@/lib/data";
 import { deleteCase } from "@/lib/actions";
+import { getPrimaryOrgId } from "@/lib/orgs";
+import {
+  getOrgRole,
+  listOrgMembers,
+  listCaseAccess,
+  canManageCase,
+} from "@/lib/access";
 import { Button, Card } from "@/components/ui";
+import { CaseAccess } from "@/components/case-access";
 import { formatDate } from "@/lib/utils";
 
 export default async function CaseOverviewPage({
@@ -24,6 +32,14 @@ export default async function CaseOverviewPage({
     listDeadlines(user.id, caseId),
   ]);
   if (!c) return null;
+
+  // Access management is shown only to those who can manage the matter.
+  const orgId = await getPrimaryOrgId(user.id);
+  const role = await getOrgRole(user.id, orgId);
+  const canManage = canManageCase(role, c.created_by, user.id);
+  const [members, grants] = canManage
+    ? await Promise.all([listOrgMembers(orgId), listCaseAccess(caseId)])
+    : [[], []];
 
   const stats = [
     { label: "Documents", value: docs.length, href: `/cases/${caseId}/documents` },
@@ -87,8 +103,22 @@ export default async function CaseOverviewPage({
             <Detail label="Jurisdiction" value={c.jurisdiction} />
             <Detail label="Opened" value={c.opened_at ? formatDate(c.opened_at) : null} />
             <Detail label="Created" value={formatDate(c.created_at)} />
+            <Detail
+              label="Access"
+              value={c.visibility === "private" ? "Restricted" : "Whole firm"}
+            />
           </dl>
         </Card>
+
+        {canManage && (
+          <CaseAccess
+            caseId={caseId}
+            visibility={c.visibility}
+            members={members}
+            grants={grants}
+            creatorId={c.created_by}
+          />
+        )}
 
         <Card className="border-red-200 p-6">
           <h2 className="text-sm font-semibold text-foreground">Danger zone</h2>

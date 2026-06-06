@@ -8,8 +8,10 @@ export interface Case {
   case_number: string | null;
   parties: { name: string; role?: string }[];
   status: "open" | "active" | "closed";
+  visibility: "org" | "private";
   description: string | null;
   opened_at: string | null;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }

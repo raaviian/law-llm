@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/session";
-import { getStrategy } from "@/lib/data";
+import { getStrategy, listDocuments } from "@/lib/data";
 import { addStrategyItem, removeStrategyItem } from "@/lib/actions";
 import { Card } from "@/components/ui";
+import { GenerateStrategyButton } from "@/components/generate-strategy-button";
 import type { StrategyItem } from "@/lib/types";
 
 type Column = "objectives" | "arguments" | "risks" | "timeline";
@@ -20,15 +21,23 @@ export default async function StrategyPage({
 }) {
   const { caseId } = await params;
   const user = await requireUser();
-  const strategy = await getStrategy(user.id, caseId);
+  const [strategy, docs] = await Promise.all([
+    getStrategy(user.id, caseId),
+    listDocuments(user.id, caseId),
+  ]);
+  const hasDocuments = docs.some((d) => d.status === "ready");
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Court strategy</h2>
-        <p className="text-sm text-muted">
-          Plan your approach to the hearing across four pillars.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Court strategy</h2>
+          <p className="text-sm text-muted">
+            Plan your approach across four pillars — or generate a first draft
+            from the case files, then edit freely.
+          </p>
+        </div>
+        <GenerateStrategyButton caseId={caseId} hasDocuments={hasDocuments} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {columns.map((col) => {

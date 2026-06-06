@@ -93,6 +93,35 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 Use the printed signing secret as `STRIPE_WEBHOOK_SECRET`.
 
+## Deployment (Vercel) + CI/CD
+
+**CI** — `.github/workflows/ci.yml` runs `lint` + `build` on every PR and on
+`main`. The build is credential-less (the app reads secrets lazily at runtime),
+so it's a pure compile/typecheck gate.
+
+**CD** — deploy via Vercel's Git integration (recommended): import the GitHub
+repo at [vercel.com/new](https://vercel.com/new). Vercel then builds **preview
+deployments for every PR** and **production on `main`** — no deploy workflow
+needed.
+
+### One-time Vercel setup
+1. **Import** the repo (framework auto-detected as Next.js).
+2. **Environment variables** (Project → Settings → Environment Variables) — add
+   everything from `.env.example` *except* `DATABASE_URL` (only used by the local
+   migrate script). Set `NEXTAUTH_URL` and `APP_URL` to your production URL
+   (e.g. `https://your-app.vercel.app`). Use a fresh `AUTH_SECRET` for prod.
+3. **Google OAuth** — add the production redirect URI in Google Cloud Console:
+   `https://your-app.vercel.app/api/auth/callback/google`.
+4. **Stripe webhook** — Stripe Dashboard → Developers → Webhooks → **Add
+   endpoint** → `https://your-app.vercel.app/api/stripe/webhook`, subscribe to
+   `checkout.session.completed` and `customer.subscription.*`. Put the endpoint's
+   signing secret in `STRIPE_WEBHOOK_SECRET` on Vercel. (No Stripe CLI needed in
+   prod.)
+5. **Redeploy** after setting env vars.
+
+> Hobby-plan function limit is 60s; very large PDF ingestion may need a
+> background queue (see below) or the Pro plan.
+
 ## Notes & next steps
 
 - **Ingestion is inline** in the upload route (simple for an MVP). For large

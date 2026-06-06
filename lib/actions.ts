@@ -11,6 +11,7 @@ import { getOrgRole, canManageCase } from "@/lib/access";
 import { getCase } from "@/lib/data";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
+import { syncOrgBillingFromStripe } from "@/lib/billing-sync";
 
 // --- Cases -------------------------------------------------------------------
 const caseSchema = z.object({
@@ -94,6 +95,13 @@ export async function deleteCase(caseId: string) {
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
+}
+
+// --- Billing -----------------------------------------------------------------
+export async function refreshBilling() {
+  const { orgId } = await requireUserAndOrg();
+  await syncOrgBillingFromStripe(orgId);
+  revalidatePath("/settings/billing");
 }
 
 // --- Per-matter access -------------------------------------------------------

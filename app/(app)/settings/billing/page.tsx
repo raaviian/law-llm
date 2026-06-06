@@ -6,6 +6,7 @@ import {
   SubscribeButton,
   ManageBillingButton,
 } from "@/components/billing-actions";
+import { refreshBilling } from "@/lib/actions";
 import { formatDate } from "@/lib/utils";
 
 export default async function BillingPage() {
@@ -57,7 +58,19 @@ export default async function BillingPage() {
                 ` · renews ${formatDate(sub.current_period_end)}`}
             </p>
           </div>
-          {currentPlan !== "free" && <ManageBillingButton />}
+          <div className="flex flex-col items-end gap-2">
+            {currentPlan !== "free" && <ManageBillingButton />}
+            {isStripeConfigured && (
+              <form action={refreshBilling}>
+                <button
+                  type="submit"
+                  className="text-xs text-muted underline hover:text-foreground"
+                >
+                  Sync from Stripe
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </Card>
 

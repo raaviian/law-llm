@@ -25,6 +25,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter,
   providers,
   secret: env.authSecret,
+  // Trust the deployment host (Vercel sets a dynamic URL); avoids UntrustedHost
+  // errors in production. AUTH_URL/NEXTAUTH_URL still anchors OAuth redirects.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {

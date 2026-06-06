@@ -140,6 +140,16 @@ export function Badge({ status }: { status: string }) {
   );
 }
 
+// Skeleton --------------------------------------------------------------------
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-slate-200/80", className)}
+      aria-hidden="true"
+    />
+  );
+}
+
 // Empty state -----------------------------------------------------------------
 export function EmptyState({
   title,

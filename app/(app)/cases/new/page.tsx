@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createCase } from "@/lib/actions";
-import { Button, Card, Input, Label } from "@/components/ui";
+import { Card, Input, Label } from "@/components/ui";
+import { SubmitButton } from "@/components/submit-button";
 
 export default function NewCasePage() {
   return (
@@ -68,7 +69,7 @@ export default function NewCasePage() {
             >
               Cancel
             </Link>
-            <Button type="submit">Create case</Button>
+            <SubmitButton pendingText="Creating case…">Create case</SubmitButton>
           </div>
         </form>
       </Card>

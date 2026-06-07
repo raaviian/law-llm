@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { createCase } from "@/lib/actions";
-import { Card, Input, Label } from "@/components/ui";
+import { requireUserAndOrg } from "@/lib/session";
+import { canCreateCase } from "@/lib/limits";
+import { Card, Input, Label, LinkButton } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 
-export default function NewCasePage() {
+export default async function NewCasePage() {
+  const { orgId } = await requireUserAndOrg();
+  const allowed = await canCreateCase(orgId);
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/dashboard" className="text-sm text-muted hover:text-foreground">
@@ -11,7 +16,21 @@ export default function NewCasePage() {
       </Link>
       <h1 className="mt-3 text-2xl font-semibold text-foreground">New case</h1>
 
-      <Card className="mt-6 p-6">
+      {!allowed ? (
+        <Card className="mt-6 p-8 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            Case limit reached
+          </h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
+            Your current plan is limited to 1 case. Upgrade to create unlimited
+            cases for your firm.
+          </p>
+          <div className="mt-5">
+            <LinkButton href="/settings/billing">View plans</LinkButton>
+          </div>
+        </Card>
+      ) : (
+        <Card className="mt-6 p-6">
         <form action={createCase} className="space-y-4">
           <div>
             <Label htmlFor="title">Case title *</Label>
@@ -72,7 +91,8 @@ export default function NewCasePage() {
             <SubmitButton pendingText="Creating case…">Create case</SubmitButton>
           </div>
         </form>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

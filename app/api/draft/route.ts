@@ -3,6 +3,7 @@ import { getCase } from "@/lib/data";
 import { streamGemini, type GeminiContent } from "@/lib/ai/gemini";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { recordAudit } from "@/lib/audit";
+import { canUseAI, AI_LIMIT_MESSAGE } from "@/lib/limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -40,6 +41,10 @@ export async function POST(req: Request) {
 
   const caseRow = await getCase(userId, caseId);
   if (!caseRow) return new Response("Case not found", { status: 403 });
+
+  if (!(await canUseAI(caseRow.org_id))) {
+    return new Response(AI_LIMIT_MESSAGE, { status: 429 });
+  }
 
   const query = `${typeLabel}. ${instructions ?? ""}`.trim();
   const chunks = await retrieveContext(userId, caseId, query, 10);

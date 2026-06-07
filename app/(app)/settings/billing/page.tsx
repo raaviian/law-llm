@@ -7,11 +7,17 @@ import {
   ManageBillingButton,
 } from "@/components/billing-actions";
 import { refreshBilling } from "@/lib/actions";
+import { getUsage } from "@/lib/limits";
 import { formatDate } from "@/lib/utils";
+
+function fmtLimit(n: number): string {
+  return n === Infinity ? "∞" : String(n);
+}
 
 export default async function BillingPage() {
   const { user, orgId } = await requireUserAndOrg();
   const supabase = await createUserClient(user.id);
+  const usage = await getUsage(orgId);
 
   const [{ data: org }, { data: sub }, { count }] = await Promise.all([
     supabase.from("organizations").select("name, plan").eq("id", orgId).single(),
@@ -74,6 +80,14 @@ export default async function BillingPage() {
         </div>
       </Card>
 
+      <Card className="p-6">
+        <h2 className="text-sm font-semibold text-foreground">Usage this month</h2>
+        <div className="mt-4 grid gap-5 sm:grid-cols-2">
+          <UsageBar label="Cases" used={usage.cases} limit={usage.caseLimit} />
+          <UsageBar label="AI requests" used={usage.ai} limit={usage.aiLimit} />
+        </div>
+      </Card>
+
       <div className="grid gap-4 sm:grid-cols-2">
         {(Object.keys(PLANS) as ("solo" | "firm")[]).map((key) => {
           const plan = PLANS[key];
@@ -105,6 +119,42 @@ export default async function BillingPage() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function UsageBar({
+  label,
+  used,
+  limit,
+}: {
+  label: string;
+  used: number;
+  limit: number;
+}) {
+  const unlimited = limit === Infinity;
+  const pct = unlimited
+    ? 0
+    : Math.min(100, Math.round((used / Math.max(1, limit)) * 100));
+  const near = !unlimited && pct >= 80;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted">{label}</span>
+        <span className="font-medium text-foreground">
+          {used} / {fmtLimit(limit)}
+        </span>
+      </div>
+      {unlimited ? (
+        <p className="mt-2 text-xs text-muted">Unlimited on your plan</p>
+      ) : (
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div
+            className={`h-full rounded-full ${near ? "bg-amber-500" : "bg-primary"}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   acceptInvitation,
   removeMember,
 } from "@/lib/invites";
+import { canCreateCase, canUseAI, CASE_LIMIT_MESSAGE, AI_LIMIT_MESSAGE } from "@/lib/limits";
 import { getCase } from "@/lib/data";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
@@ -32,6 +33,7 @@ const caseSchema = z.object({
 
 export async function createCase(formData: FormData) {
   const { user, orgId } = await requireUserAndOrg();
+  if (!(await canCreateCase(orgId))) throw new Error(CASE_LIMIT_MESSAGE);
   const parsed = caseSchema.parse(Object.fromEntries(formData));
   const supabase = await createUserClient(user.id);
 
@@ -382,6 +384,7 @@ export async function addStrategyItem(
 
 export async function generateStrategy(caseId: string) {
   const { user, orgId } = await requireUserAndOrg();
+  if (!(await canUseAI(orgId))) throw new Error(AI_LIMIT_MESSAGE);
   const c = await getCase(user.id, caseId);
   if (!c) throw new Error("Case not found");
 

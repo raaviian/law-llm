@@ -5,6 +5,20 @@ const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export const CHAT_MODEL = env.geminiModel;
 
+// Free-tier models are flaky (429 RESOURCE_EXHAUSTED / 503). Try the configured
+// model first, then fall back across known-good free-tier models so a single
+// model's quota/availability never breaks a request.
+const FALLBACKS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-flash-lite-latest",
+];
+function candidateModels(preferred?: string): string[] {
+  return [...new Set([preferred ?? CHAT_MODEL, ...FALLBACKS])];
+}
+// Status codes that mean "try a different model".
+const RETRYABLE = new Set([429, 500, 503, 404]);
+
 export interface GeminiContent {
   role: "user" | "model";
   parts: { text: string }[];
@@ -24,8 +38,6 @@ export async function* streamGemini(opts: {
   model?: string;
 }): AsyncGenerator<string> {
   const key = requireEnv(env.geminiKey, "GEMINI_API_KEY");
-  const model = opts.model ?? CHAT_MODEL;
-  const url = `${BASE}/${model}:streamGenerateContent?alt=sse&key=${key}`;
 
   const body: {
     contents: GeminiContent[];
@@ -33,14 +45,26 @@ export async function* streamGemini(opts: {
   } = { contents: opts.contents };
   if (opts.system) body.system_instruction = { parts: [{ text: opts.system }] };
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok || !res.body) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Gemini error ${res.status}: ${detail.slice(0, 300)}`);
+  // Open a stream on the first model that responds OK.
+  let res: Response | null = null;
+  let lastDetail = "";
+  const models = candidateModels(opts.model);
+  for (const model of models) {
+    const url = `${BASE}/${model}:streamGenerateContent?alt=sse&key=${key}`;
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (r.ok && r.body) {
+      res = r;
+      break;
+    }
+    lastDetail = `${r.status}: ${(await r.text().catch(() => "")).slice(0, 200)}`;
+    if (!RETRYABLE.has(r.status)) break; // non-retryable (e.g. 400/401)
+  }
+  if (!res || !res.body) {
+    throw new Error(`Gemini stream failed (${lastDetail || "no response"})`);
   }
 
   const reader = res.body.getReader();
@@ -78,8 +102,6 @@ export async function generateGeminiJSON<T>(opts: {
   model?: string;
 }): Promise<T | null> {
   const key = requireEnv(env.geminiKey, "GEMINI_API_KEY");
-  const model = opts.model ?? CHAT_MODEL;
-  const url = `${BASE}/${model}:generateContent?key=${key}`;
 
   const body: {
     contents: GeminiContent[];
@@ -91,18 +113,25 @@ export async function generateGeminiJSON<T>(opts: {
   };
   if (opts.system) body.system_instruction = { parts: [{ text: opts.system }] };
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Gemini error ${res.status}: ${detail.slice(0, 300)}`);
-  }
-  const json = (await res.json()) as {
+  let json: {
     candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
+  } | null = null;
+  let lastDetail = "";
+  for (const model of candidateModels(opts.model)) {
+    const res = await fetch(`${BASE}/${model}:generateContent?key=${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      json = await res.json();
+      break;
+    }
+    lastDetail = `${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`;
+    if (!RETRYABLE.has(res.status)) break;
+  }
+  if (!json) throw new Error(`Gemini request failed (${lastDetail || "no response"})`);
+
   const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) return null;
   try {

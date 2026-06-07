@@ -14,6 +14,10 @@ const ACTION_LABELS: Record<string, string> = {
   "deadline.create": "Added deadline",
   "chat.query": "Asked the assistant",
   "thread.create": "Started a chat",
+  "draft.create": "Generated a draft",
+  "strategy.generate": "Generated strategy",
+  "member.invite": "Invited a member",
+  "member.remove": "Removed a member",
 };
 
 const ACTION_COLORS: Record<string, string> = {
@@ -22,6 +26,9 @@ const ACTION_COLORS: Record<string, string> = {
   note: "bg-amber-50 text-amber-700 ring-amber-600/20",
   deadline: "bg-rose-50 text-rose-700 ring-rose-600/20",
   chat: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  draft: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  strategy: "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+  member: "bg-cyan-50 text-cyan-700 ring-cyan-600/20",
 };
 
 export default async function AuditPage() {

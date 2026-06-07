@@ -3,11 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireUserAndOrg } from "@/lib/session";
+import { requireUser, requireUserAndOrg } from "@/lib/session";
 import { createUserClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordAudit } from "@/lib/audit";
 import { getOrgRole, canManageCase } from "@/lib/access";
+import {
+  createInvitation,
+  revokeInvitation,
+  acceptInvitation,
+  removeMember,
+} from "@/lib/invites";
 import { getCase } from "@/lib/data";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
@@ -93,6 +99,66 @@ export async function deleteCase(caseId: string) {
     summary: "Deleted a case",
   });
 
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
+// --- Team / invitations ------------------------------------------------------
+async function assertOrgManager() {
+  const { user, orgId } = await requireUserAndOrg();
+  const role = await getOrgRole(user.id, orgId);
+  if (role !== "owner" && role !== "admin") {
+    throw new Error("Only owners and admins can manage the team.");
+  }
+  return { user, orgId, role };
+}
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+export async function inviteMember(formData: FormData) {
+  const { user, orgId } = await assertOrgManager();
+  const email = String(formData.get("email") ?? "").trim();
+  const role = String(formData.get("role") ?? "member") === "admin" ? "admin" : "member";
+  if (!EMAIL_RE.test(email)) throw new Error("Enter a valid email address.");
+
+  await createInvitation(orgId, email, role, user.id);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "member.invite",
+    targetType: "org",
+    summary: `Invited ${email} as ${role}`,
+  });
+  revalidatePath("/settings/team");
+}
+
+export async function revokeInvite(inviteId: string) {
+  const { orgId } = await assertOrgManager();
+  await revokeInvitation(orgId, inviteId);
+  revalidatePath("/settings/team");
+}
+
+export async function removeTeamMember(targetUserId: string) {
+  const { user, orgId } = await assertOrgManager();
+  if (targetUserId === user.id) throw new Error("You can't remove yourself.");
+  const res = await removeMember(orgId, targetUserId);
+  if (!res.ok) throw new Error(res.reason ?? "Could not remove member.");
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "member.remove",
+    targetType: "org",
+    summary: "Removed a member",
+  });
+  revalidatePath("/settings/team");
+}
+
+export async function acceptInvite(token: string) {
+  const user = await requireUser();
+  const res = await acceptInvitation(token, user.id, user.email);
+  if (!res.ok) throw new Error(res.reason);
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

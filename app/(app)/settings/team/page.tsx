@@ -62,8 +62,9 @@ export default async function TeamPage() {
             <SubmitButton pendingText="Inviting…">Send invite</SubmitButton>
           </form>
           <p className="mt-2 text-xs text-muted">
-            They&apos;ll sign in with this Google email to join. You&apos;ll get a
-            link to share.
+            They&apos;ll sign in with this Google email to join. We email an
+            invite automatically (when email is configured), and you can always
+            copy the link below.
           </p>
         </Card>
       )}

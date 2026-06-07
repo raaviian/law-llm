@@ -3,6 +3,7 @@ import { getStrategy, listDocuments } from "@/lib/data";
 import { addStrategyItem, removeStrategyItem } from "@/lib/actions";
 import { Card } from "@/components/ui";
 import { GenerateStrategyButton } from "@/components/generate-strategy-button";
+import { PendingButton } from "@/components/pending-button";
 import type { StrategyItem } from "@/lib/types";
 
 type Column = "objectives" | "arguments" | "risks" | "timeline";
@@ -95,12 +96,12 @@ export default async function StrategyPage({
                   placeholder={`Add to ${col.title.toLowerCase()}…`}
                   className="w-full rounded-lg border border-border bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <button
-                  type="submit"
+                <PendingButton
+                  pendingText="Adding…"
                   className="w-full rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
                 >
                   Add
-                </button>
+                </PendingButton>
               </form>
             </Card>
           );

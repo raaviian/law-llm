@@ -15,6 +15,9 @@ import {
   removeMember,
 } from "@/lib/invites";
 import { canCreateCase, canUseAI, CASE_LIMIT_MESSAGE, AI_LIMIT_MESSAGE } from "@/lib/limits";
+import { sendInviteEmail } from "@/lib/email";
+import { getOrgName } from "@/lib/access";
+import { env } from "@/lib/env";
 import { getCase } from "@/lib/data";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
@@ -123,7 +126,17 @@ export async function inviteMember(formData: FormData) {
   const role = String(formData.get("role") ?? "member") === "admin" ? "admin" : "member";
   if (!EMAIL_RE.test(email)) throw new Error("Enter a valid email address.");
 
-  await createInvitation(orgId, email, role, user.id);
+  const invite = await createInvitation(orgId, email, role, user.id);
+
+  // Best-effort email; the copy-link on the team page is the fallback.
+  const orgName = await getOrgName(orgId);
+  await sendInviteEmail({
+    to: email,
+    orgName,
+    inviteUrl: `${env.appUrl}/invite/${invite.token}`,
+    inviterName: user.name,
+  });
+
   await recordAudit({
     orgId,
     actorId: user.id,

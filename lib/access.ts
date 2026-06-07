@@ -8,6 +8,17 @@ export interface OrgMember {
   name: string | null;
 }
 
+/** An organization's display name. */
+export async function getOrgName(orgId: string): Promise<string> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("organizations")
+    .select("name")
+    .eq("id", orgId)
+    .maybeSingle();
+  return (data?.name as string) ?? "the firm";
+}
+
 /** The caller's role in an org, or null if not a member. */
 export async function getOrgRole(
   userId: string,

@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/session";
 import { listNotes } from "@/lib/data";
 import { createNote, deleteNote } from "@/lib/actions";
-import { Button, Card, EmptyState, Input, Label } from "@/components/ui";
+import { Card, EmptyState, Input, Label } from "@/components/ui";
+import { SubmitButton } from "@/components/submit-button";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function NotesPage({
@@ -77,9 +78,9 @@ export default async function NotesPage({
               className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
-          <Button type="submit" className="w-full">
+          <SubmitButton pendingText="Saving…" className="w-full">
             Save note
-          </Button>
+          </SubmitButton>
         </form>
       </Card>
     </div>

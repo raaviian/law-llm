@@ -21,6 +21,9 @@ export const env = {
   voyageKey: process.env.VOYAGE_API_KEY ?? "",
   voyageModel: process.env.VOYAGE_MODEL ?? "voyage-law-2",
 
+  resendKey: process.env.RESEND_API_KEY ?? "",
+  emailFrom: process.env.EMAIL_FROM ?? "LexBoard <onboarding@resend.dev>",
+
   stripeSecret: process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   stripePriceSolo: process.env.NEXT_PUBLIC_STRIPE_PRICE_SOLO ?? "",

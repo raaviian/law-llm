@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/session";
 import { listDeadlines } from "@/lib/data";
 import { createDeadline, toggleDeadline } from "@/lib/actions";
-import { Badge, Button, Card, EmptyState, Input, Label } from "@/components/ui";
+import { Badge, Card, EmptyState, Input, Label } from "@/components/ui";
+import { SubmitButton } from "@/components/submit-button";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function DeadlinesPage({
@@ -98,9 +99,9 @@ export default async function DeadlinesPage({
             <Label htmlFor="due_at">Due</Label>
             <Input id="due_at" name="due_at" type="datetime-local" required />
           </div>
-          <Button type="submit" className="w-full">
+          <SubmitButton pendingText="Adding…" className="w-full">
             Add deadline
-          </Button>
+          </SubmitButton>
         </form>
       </Card>
     </div>

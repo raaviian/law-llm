@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep native/heavy Node libraries out of the server bundle so they load at
-  // runtime (pdf-parse pulls in pdfjs-dist; mammoth is CJS).
-  serverExternalPackages: ["pdf-parse", "mammoth"],
+  // Keep heavy/CJS Node libraries out of the server bundle (mammoth is CJS).
+  // PDF extraction uses unpdf, which is serverless-safe and bundles fine.
+  serverExternalPackages: ["mammoth"],
 };
 
 export default nextConfig;

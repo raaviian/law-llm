@@ -18,16 +18,15 @@ export async function extractPages(
   const lower = fileName.toLowerCase();
 
   if (mimeType === "application/pdf" || lower.endsWith(".pdf")) {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    try {
-      const result = await parser.getText();
-      return result.pages
-        .map((p) => ({ page: p.num, text: p.text.trim() }))
-        .filter((p) => p.text.length > 0);
-    } finally {
-      await parser.destroy();
-    }
+    // unpdf is serverless-safe (no DOM globals like DOMMatrix required) and
+    // returns per-page text so citations keep accurate page numbers.
+    const { getDocumentProxy, extractText } = await import("unpdf");
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const { text } = await extractText(pdf, { mergePages: false });
+    const pages = Array.isArray(text) ? text : [text];
+    return pages
+      .map((t, i) => ({ page: i + 1, text: (t ?? "").trim() }))
+      .filter((p) => p.text.length > 0);
   }
 
   if (

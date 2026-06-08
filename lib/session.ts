@@ -1,7 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getPrimaryOrgId } from "@/lib/orgs";
+import { getActiveOrgId } from "@/lib/orgs";
 
 export interface AppUser {
   id: string;
@@ -25,6 +25,6 @@ export async function requireUser(): Promise<AppUser> {
 /** Get the user together with their primary organization id. */
 export async function requireUserAndOrg(): Promise<{ user: AppUser; orgId: string }> {
   const user = await requireUser();
-  const orgId = await getPrimaryOrgId(user.id, user.name ?? user.email ?? "My Firm");
+  const orgId = await getActiveOrgId(user.id);
   return { user, orgId };
 }

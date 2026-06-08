@@ -7,7 +7,6 @@ import {
   listDeadlines,
 } from "@/lib/data";
 import { deleteCase } from "@/lib/actions";
-import { getPrimaryOrgId } from "@/lib/orgs";
 import {
   getOrgRole,
   listOrgMembers,
@@ -33,12 +32,11 @@ export default async function CaseOverviewPage({
   ]);
   if (!c) return null;
 
-  // Access management is shown only to those who can manage the matter.
-  const orgId = await getPrimaryOrgId(user.id);
-  const role = await getOrgRole(user.id, orgId);
+  // Access management uses the case's own org (a member may belong to several).
+  const role = await getOrgRole(user.id, c.org_id);
   const canManage = canManageCase(role, c.created_by, user.id);
   const [members, grants] = canManage
-    ? await Promise.all([listOrgMembers(orgId), listCaseAccess(caseId)])
+    ? await Promise.all([listOrgMembers(c.org_id), listCaseAccess(caseId)])
     : [[], []];
 
   const stats = [

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { requireUser, requireUserAndOrg } from "@/lib/session";
 import { createUserClient } from "@/lib/supabase/server";
@@ -19,6 +20,7 @@ import { sendInviteEmail } from "@/lib/email";
 import { getOrgName } from "@/lib/access";
 import { env } from "@/lib/env";
 import { getCase } from "@/lib/data";
+import { listUserOrgs, ACTIVE_ORG_COOKIE } from "@/lib/orgs";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
 import { syncOrgBillingFromStripe } from "@/lib/billing-sync";
@@ -33,6 +35,31 @@ const caseSchema = z.object({
   status: z.enum(["open", "active", "closed"]).default("open"),
   description: z.string().optional(),
 });
+
+// Org id of a case the caller can access (RLS-enforced). Case-scoped writes use
+// this so a note/deadline/etc. always belongs to the case's org — not whichever
+// org the actor currently has "active".
+async function caseOrgId(userId: string, caseId: string): Promise<string> {
+  const c = await getCase(userId, caseId);
+  if (!c) throw new Error("Case not found");
+  return c.org_id;
+}
+
+export async function switchOrg(orgId: string) {
+  const user = await requireUser();
+  const orgs = await listUserOrgs(user.id);
+  if (!orgs.some((o) => o.org_id === orgId)) {
+    throw new Error("You are not a member of that organization.");
+  }
+  const jar = await cookies();
+  jar.set(ACTIVE_ORG_COOKIE, orgId, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  revalidatePath("/", "layout");
+}
 
 export async function createCase(formData: FormData) {
   const { user, orgId } = await requireUserAndOrg();
@@ -261,7 +288,8 @@ export async function revokeCaseAccess(caseId: string, targetUserId: string) {
 
 // --- Notes -------------------------------------------------------------------
 export async function createNote(caseId: string, formData: FormData) {
-  const { user, orgId } = await requireUserAndOrg();
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
   if (!body && !title) return;
@@ -291,7 +319,8 @@ export async function saveDraftNote(
   title: string,
   body: string,
 ) {
-  const { user, orgId } = await requireUserAndOrg();
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
   if (!body.trim()) return;
   const supabase = await createUserClient(user.id);
   await supabase.from("notes").insert({
@@ -322,7 +351,8 @@ export async function deleteNote(caseId: string, noteId: string) {
 
 // --- Deadlines ---------------------------------------------------------------
 export async function createDeadline(caseId: string, formData: FormData) {
-  const { user, orgId } = await requireUserAndOrg();
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
   const title = String(formData.get("title") ?? "").trim();
   const type = String(formData.get("type") ?? "reminder");
   const due = String(formData.get("due_at") ?? "");
@@ -367,7 +397,8 @@ export async function addStrategyItem(
   column: StrategyColumn,
   text: string,
 ) {
-  const { user, orgId } = await requireUserAndOrg();
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
   if (!text.trim()) return;
   const supabase = await createUserClient(user.id);
 
@@ -396,10 +427,11 @@ export async function addStrategyItem(
 }
 
 export async function generateStrategy(caseId: string) {
-  const { user, orgId } = await requireUserAndOrg();
-  if (!(await canUseAI(orgId))) throw new Error(AI_LIMIT_MESSAGE);
+  const user = await requireUser();
   const c = await getCase(user.id, caseId);
   if (!c) throw new Error("Case not found");
+  const orgId = c.org_id;
+  if (!(await canUseAI(orgId))) throw new Error(AI_LIMIT_MESSAGE);
 
   const chunks = await retrieveContext(
     user.id,
@@ -490,7 +522,8 @@ export async function removeStrategyItem(
 
 // --- Chat threads ------------------------------------------------------------
 export async function createThread(caseId: string): Promise<string> {
-  const { user, orgId } = await requireUserAndOrg();
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
   const supabase = await createUserClient(user.id);
   const { data, error } = await supabase
     .from("chat_threads")

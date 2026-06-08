@@ -1,5 +1,42 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+export const ACTIVE_ORG_COOKIE = "active_org";
+
+export interface UserOrg {
+  org_id: string;
+  name: string;
+  role: string;
+}
+
+/** All organizations the user belongs to, earliest first. */
+export async function listUserOrgs(userId: string): Promise<UserOrg[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("memberships")
+    .select("org_id, role, organizations(name)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  return (data ?? []).map((m) => ({
+    org_id: m.org_id as string,
+    role: m.role as string,
+    name: (m.organizations as { name?: string } | null)?.name ?? "Firm",
+  }));
+}
+
+/**
+ * Resolve the user's *active* organization: the one selected via the org
+ * switcher cookie (if they're still a member), otherwise their earliest org.
+ */
+export async function getActiveOrgId(userId: string): Promise<string> {
+  const orgs = await listUserOrgs(userId);
+  if (orgs.length === 0) return ensureOrgForUser(userId, "My Firm");
+  const jar = await cookies();
+  const selected = jar.get(ACTIVE_ORG_COOKIE)?.value;
+  if (selected && orgs.some((o) => o.org_id === selected)) return selected;
+  return orgs[0].org_id;
+}
 
 /**
  * Ensure a user has at least one organization + membership. Idempotent: safe to

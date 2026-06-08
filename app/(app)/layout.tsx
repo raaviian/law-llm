@@ -1,8 +1,10 @@
 import { requireUser } from "@/lib/session";
 import { signOut } from "@/lib/auth";
+import { listUserOrgs, getActiveOrgId } from "@/lib/orgs";
 import { Button } from "@/components/ui";
 import { Logo } from "@/components/brand";
 import { NavLink } from "@/components/nav-link";
+import { OrgSwitcher } from "@/components/org-switcher";
 
 export default async function AppLayout({
   children,
@@ -12,13 +14,18 @@ export default async function AppLayout({
   const user = await requireUser();
   const label = user.name || user.email || "U";
   const initial = label.trim().charAt(0).toUpperCase();
+  const [orgs, activeOrgId] = await Promise.all([
+    listUserOrgs(user.id),
+    getActiveOrgId(user.id),
+  ]);
 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <Logo href="/dashboard" />
+            <OrgSwitcher orgs={orgs} activeOrgId={activeOrgId} />
             <nav className="hidden items-center gap-1 sm:flex">
               <NavLink href="/dashboard" prefixes={["/dashboard", "/cases"]}>
                 Cases

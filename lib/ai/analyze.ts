@@ -1,5 +1,5 @@
 import "server-only";
-import { generateGeminiJSON } from "@/lib/ai/gemini";
+import { generateJSON, type OrgAiConfig } from "@/lib/ai/llm";
 
 export interface DocKeyFacts {
   parties?: string[];
@@ -20,6 +20,7 @@ export interface DocAnalysis {
 export async function analyzeDocument(
   fileName: string,
   text: string,
+  config: OrgAiConfig | null = null,
 ): Promise<DocAnalysis | null> {
   const excerpt = text.slice(0, 24000); // cap tokens; covers most matters
   const system =
@@ -37,7 +38,8 @@ Document text:
 ${excerpt}
 """`;
 
-  const result = await generateGeminiJSON<{ summary?: string } & DocKeyFacts>({
+  const result = await generateJSON<{ summary?: string } & DocKeyFacts>({
+    config,
     system,
     prompt,
   });

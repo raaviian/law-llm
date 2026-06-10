@@ -7,6 +7,7 @@ export const env = {
   appUrl: process.env.APP_URL ?? "http://localhost:3000",
 
   authSecret: process.env.AUTH_SECRET ?? "",
+  encryptionKey: process.env.ENCRYPTION_KEY ?? "",
   googleId: process.env.AUTH_GOOGLE_ID ?? "",
   googleSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
 

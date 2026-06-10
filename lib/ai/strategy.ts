@@ -1,5 +1,5 @@
 import "server-only";
-import { generateGeminiJSON } from "@/lib/ai/gemini";
+import { generateJSON, type OrgAiConfig } from "@/lib/ai/llm";
 
 export interface GeneratedStrategy {
   objectives: string[];
@@ -13,12 +13,15 @@ export interface GeneratedStrategy {
  * concise bullet points (objectives incl. the main legal issues, arguments,
  * risks/counter-arguments, and a timeline). Null on failure.
  */
-export async function generateCaseStrategy(opts: {
-  caseTitle: string;
-  court?: string | null;
-  jurisdiction?: string | null;
-  context: string;
-}): Promise<GeneratedStrategy | null> {
+export async function generateCaseStrategy(
+  opts: {
+    caseTitle: string;
+    court?: string | null;
+    jurisdiction?: string | null;
+    context: string;
+  },
+  config: OrgAiConfig | null = null,
+): Promise<GeneratedStrategy | null> {
   const system =
     "You are an experienced litigation strategist. Using ONLY the provided case context, produce a practical, court-ready strategy. Respond with ONLY JSON. Do not invent facts, parties, or authorities; if the context is thin, give sensible general strategic guidance and say so plainly.";
 
@@ -42,5 +45,5 @@ Return a JSON object with these string arrays (each 3-6 concise bullets, under ~
 - "timeline": a recommended sequence of steps/milestones leading to the hearing.
 Base each point on the context where possible. Output JSON only.`;
 
-  return generateGeminiJSON<GeneratedStrategy>({ system, prompt });
+  return generateJSON<GeneratedStrategy>({ config, system, prompt });
 }

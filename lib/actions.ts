@@ -164,6 +164,7 @@ export async function inviteMember(formData: FormData) {
     orgName,
     inviteUrl: `${env.appUrl}/invite/${invite.token}`,
     inviterName: user.name,
+    role,
   });
 
   await recordAudit({

@@ -23,6 +23,8 @@ import { getCase } from "@/lib/data";
 import { listUserOrgs, ACTIVE_ORG_COOKIE } from "@/lib/orgs";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
+import { getOrgAiConfig } from "@/lib/ai/llm";
+import { encryptSecret } from "@/lib/crypto";
 import { syncOrgBillingFromStripe } from "@/lib/billing-sync";
 
 // --- Cases -------------------------------------------------------------------
@@ -210,6 +212,54 @@ export async function refreshBilling() {
   const { orgId } = await requireUserAndOrg();
   await syncOrgBillingFromStripe(orgId);
   revalidatePath("/settings/billing");
+}
+
+// --- AI settings (BYOK) ------------------------------------------------------
+const AI_PROVIDERS = ["gemini", "anthropic", "openai"];
+
+export async function saveAiSettings(formData: FormData) {
+  const { user, orgId } = await assertOrgManager();
+  const provider = String(formData.get("provider") ?? "gemini");
+  const model = String(formData.get("model") ?? "").trim();
+  const apiKey = String(formData.get("api_key") ?? "").trim();
+  if (!AI_PROVIDERS.includes(provider)) throw new Error("Invalid provider.");
+  if (!apiKey) throw new Error("Enter an API key.");
+
+  const admin = createAdminClient();
+  await admin.from("org_ai_settings").upsert(
+    {
+      org_id: orgId,
+      provider,
+      model: model || null,
+      api_key: encryptSecret(apiKey),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "org_id" },
+  );
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "ai.configure",
+    targetType: "org",
+    summary: `Set AI provider to ${provider}`,
+  });
+  revalidatePath("/settings/ai");
+}
+
+export async function clearAiSettings() {
+  const { user, orgId } = await assertOrgManager();
+  const admin = createAdminClient();
+  await admin.from("org_ai_settings").delete().eq("org_id", orgId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "ai.configure",
+    targetType: "org",
+    summary: "Reset AI to the shared model",
+  });
+  revalidatePath("/settings/ai");
 }
 
 // --- Per-matter access -------------------------------------------------------
@@ -441,12 +491,16 @@ export async function generateStrategy(caseId: string) {
   );
   const context = buildContextBlock(chunks);
 
-  const gen = await generateCaseStrategy({
-    caseTitle: c.title,
-    court: c.court,
-    jurisdiction: c.jurisdiction,
-    context,
-  });
+  const aiConfig = await getOrgAiConfig(orgId);
+  const gen = await generateCaseStrategy(
+    {
+      caseTitle: c.title,
+      court: c.court,
+      jurisdiction: c.jurisdiction,
+      context,
+    },
+    aiConfig,
+  );
   if (!gen) throw new Error("The AI could not generate a strategy. Try again.");
 
   const toItems = (arr?: string[]) =>

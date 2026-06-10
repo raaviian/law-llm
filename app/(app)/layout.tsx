@@ -33,6 +33,9 @@ export default async function AppLayout({
               <NavLink href="/settings/team" prefixes={["/settings/team"]}>
                 Team
               </NavLink>
+              <NavLink href="/settings/ai" prefixes={["/settings/ai"]}>
+                AI
+              </NavLink>
               <NavLink href="/settings/audit" prefixes={["/settings/audit"]}>
                 Activity
               </NavLink>
@@ -80,6 +83,9 @@ export default async function AppLayout({
           </NavLink>
           <NavLink href="/settings/team" prefixes={["/settings/team"]}>
             Team
+          </NavLink>
+          <NavLink href="/settings/ai" prefixes={["/settings/ai"]}>
+            AI
           </NavLink>
           <NavLink href="/settings/audit" prefixes={["/settings/audit"]}>
             Activity

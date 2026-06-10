@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { getCase } from "@/lib/data";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { streamGemini, type GeminiContent } from "@/lib/ai/gemini";
+import { streamChat, getOrgAiConfig, type ChatMessage } from "@/lib/ai/llm";
 import { retrieveContext, buildContextBlock, SYSTEM_PROMPT } from "@/lib/ai/rag";
 import { recordAudit } from "@/lib/audit";
 import { canUseAI, AI_LIMIT_MESSAGE } from "@/lib/limits";
@@ -89,10 +89,10 @@ export async function POST(req: Request) {
   }));
   const contextBlock = buildContextBlock(chunks);
 
-  // Map prior turns to Gemini's format (assistant -> "model").
-  const priorContents: GeminiContent[] = (history ?? []).map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content as string }],
+  const aiConfig = await getOrgAiConfig(caseRow.org_id);
+  const priorMessages: ChatMessage[] = (history ?? []).map((m) => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: m.content as string,
   }));
 
   const encoder = new TextEncoder();
@@ -102,21 +102,18 @@ export async function POST(req: Request) {
     async start(controller) {
       let full = "";
       try {
-        const contents: GeminiContent[] = [
-          ...priorContents,
+        const messages: ChatMessage[] = [
+          ...priorMessages,
           {
             role: "user",
-            parts: [
-              {
-                text: `Context from this case's documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${message}`,
-              },
-            ],
+            content: `Context from this case's documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${message}`,
           },
         ];
 
-        for await (const delta of streamGemini({
+        for await (const delta of streamChat({
+          config: aiConfig,
           system: SYSTEM_PROMPT,
-          contents,
+          messages,
         })) {
           full += delta;
           controller.enqueue(encoder.encode(delta));

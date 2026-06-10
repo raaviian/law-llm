@@ -4,6 +4,7 @@ import { extractPages } from "@/lib/ai/extract";
 import { chunkPages } from "@/lib/ai/chunk";
 import { embedTexts } from "@/lib/ai/embeddings";
 import { analyzeDocument } from "@/lib/ai/analyze";
+import { getOrgAiConfig } from "@/lib/ai/llm";
 
 const EMBED_BATCH = 100;
 
@@ -68,7 +69,8 @@ export async function ingestDocument(documentId: string): Promise<void> {
     let keyFacts: Record<string, unknown> = {};
     try {
       const fullText = pages.map((p) => p.text).join("\n\n");
-      const analysis = await analyzeDocument(doc.file_name, fullText);
+      const aiConfig = await getOrgAiConfig(doc.org_id);
+      const analysis = await analyzeDocument(doc.file_name, fullText, aiConfig);
       if (analysis) {
         summary = analysis.summary || null;
         keyFacts = (analysis.key_facts ?? {}) as Record<string, unknown>;

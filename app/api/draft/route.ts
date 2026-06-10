@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getCase } from "@/lib/data";
-import { streamGemini, type GeminiContent } from "@/lib/ai/gemini";
+import { streamChat, getOrgAiConfig } from "@/lib/ai/llm";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { recordAudit } from "@/lib/audit";
 import { canUseAI, AI_LIMIT_MESSAGE } from "@/lib/limits";
@@ -68,13 +68,17 @@ ${contextBlock}
 ---
 Task: Draft a ${typeLabel}.${instructions ? `\nAdditional instructions: ${instructions}` : ""}`;
 
-  const contents: GeminiContent[] = [{ role: "user", parts: [{ text: prompt }] }];
+  const aiConfig = await getOrgAiConfig(caseRow.org_id);
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const delta of streamGemini({ system: SYSTEM, contents })) {
+        for await (const delta of streamChat({
+          config: aiConfig,
+          system: SYSTEM,
+          messages: [{ role: "user", content: prompt }],
+        })) {
           controller.enqueue(encoder.encode(delta));
         }
       } catch (err) {

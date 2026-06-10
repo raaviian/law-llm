@@ -18,6 +18,7 @@ const ACTION_LABELS: Record<string, string> = {
   "strategy.generate": "Generated strategy",
   "member.invite": "Invited a member",
   "member.remove": "Removed a member",
+  "ai.configure": "Updated AI model",
 };
 
 const ACTION_COLORS: Record<string, string> = {
@@ -29,6 +30,7 @@ const ACTION_COLORS: Record<string, string> = {
   draft: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   strategy: "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
   member: "bg-cyan-50 text-cyan-700 ring-cyan-600/20",
+  ai: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/20",
 };
 
 export default async function AuditPage() {

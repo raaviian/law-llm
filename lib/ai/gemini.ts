@@ -36,8 +36,9 @@ export async function* streamGemini(opts: {
   system?: string;
   contents: GeminiContent[];
   model?: string;
+  apiKey?: string;
 }): AsyncGenerator<string> {
-  const key = requireEnv(env.geminiKey, "GEMINI_API_KEY");
+  const key = opts.apiKey || requireEnv(env.geminiKey, "GEMINI_API_KEY");
 
   const body: {
     contents: GeminiContent[];
@@ -100,8 +101,9 @@ export async function generateGeminiJSON<T>(opts: {
   system?: string;
   prompt: string;
   model?: string;
+  apiKey?: string;
 }): Promise<T | null> {
-  const key = requireEnv(env.geminiKey, "GEMINI_API_KEY");
+  const key = opts.apiKey || requireEnv(env.geminiKey, "GEMINI_API_KEY");
 
   const body: {
     contents: GeminiContent[];

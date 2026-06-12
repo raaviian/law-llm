@@ -49,3 +49,6 @@ next-env.d.ts
 
 # codegraph local index
 .codegraph/
+
+# installed agent skills (uipro)
+.claude/skills/

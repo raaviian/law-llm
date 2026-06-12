@@ -149,6 +149,50 @@ export async function listAuditLogs(
   return (data ?? []) as AuditLog[];
 }
 
+export interface DashboardData {
+  cases: Case[];
+  deadlines: (Deadline & { case_title?: string })[];
+  activity: AuditLog[];
+  docCount: number;
+  openDeadlineCount: number;
+}
+
+/** Everything the dashboard needs, in one round of parallel RLS-scoped reads. */
+export async function getDashboardData(userId: string): Promise<DashboardData> {
+  const supabase = await createUserClient(userId);
+  const [casesRes, deadlinesRes, docsRes, deadlineCountRes, activityRes] =
+    await Promise.all([
+      supabase.from("cases").select("*").order("updated_at", { ascending: false }),
+      supabase
+        .from("deadlines")
+        .select("*, cases(title)")
+        .eq("done", false)
+        .order("due_at", { ascending: true })
+        .limit(6),
+      supabase.from("documents").select("id", { count: "exact", head: true }),
+      supabase
+        .from("deadlines")
+        .select("id", { count: "exact", head: true })
+        .eq("done", false),
+      supabase
+        .from("audit_logs")
+        .select("id, actor_email, action, target_type, case_id, summary, created_at")
+        .order("created_at", { ascending: false })
+        .limit(6),
+    ]);
+
+  return {
+    cases: (casesRes.data ?? []) as Case[],
+    deadlines: (deadlinesRes.data ?? []).map((d: Record<string, unknown>) => ({
+      ...(d as unknown as Deadline),
+      case_title: (d.cases as { title?: string } | null)?.title,
+    })),
+    activity: (activityRes.data ?? []) as AuditLog[],
+    docCount: docsRes.count ?? 0,
+    openDeadlineCount: deadlineCountRes.count ?? 0,
+  };
+}
+
 export async function getUpcomingDeadlines(
   userId: string,
   limit = 5,

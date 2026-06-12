@@ -624,3 +624,28 @@ export async function deleteDocument(caseId: string, documentId: string) {
   });
   revalidatePath(`/cases/${caseId}/documents`);
 }
+
+// --- Marketing: public consultation requests ---------------------------------
+export type BookingState = { ok?: boolean; error?: string } | null;
+
+export async function requestConsultation(
+  _prev: BookingState,
+  formData: FormData,
+): Promise<BookingState> {
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { error: "Please enter your name and a valid email address." };
+  }
+  const admin = createAdminClient();
+  const { error } = await admin.from("consultation_requests").insert({
+    name,
+    email,
+    phone: String(formData.get("phone") ?? "").trim() || null,
+    practice_area: String(formData.get("practice_area") ?? "").trim() || null,
+    preferred_date: String(formData.get("preferred_date") ?? "") || null,
+    message: String(formData.get("message") ?? "").trim() || null,
+  });
+  if (error) return { error: "Something went wrong — please try again." };
+  return { ok: true };
+}

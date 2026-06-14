@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { LinkButton } from "@/components/ui";
 import { Container, SiteHeader, SiteFooter } from "@/components/brand";
 import { Reveal } from "@/components/reveal";
@@ -64,27 +65,46 @@ export default function Home() {
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.06] via-transparent to-transparent" />
-          <Container className="py-20 text-center lg:py-28">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-sm font-medium text-[#8a6d1f]">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Trusted legal counsel since 1998
-            </p>
-            <h1 className="mx-auto max-w-3xl animate-fade-up font-serif text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl">
-              Clear, decisive counsel{" "}
-              <span className="text-primary">when it matters most.</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl animate-fade-up text-xl leading-relaxed text-muted [animation-delay:120ms]">
-              A boutique firm pairing seasoned attorneys with modern case
-              intelligence — so your matter is handled with rigor, discretion,
-              and speed.
-            </p>
-            <div className="mt-9 flex animate-fade-up flex-wrap items-center justify-center gap-3 [animation-delay:240ms]">
-              <LinkButton href="#consult" size="lg">
-                Request a consultation
-              </LinkButton>
-              <LinkButton href="#practice" variant="secondary" size="lg">
-                Our practice areas
-              </LinkButton>
+          <Container className="grid items-center gap-12 py-20 lg:grid-cols-2 lg:py-28">
+            <div className="animate-fade-up">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-sm font-medium text-[#8a6d1f]">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                Trusted legal counsel since 1998
+              </p>
+              <h1 className="font-serif text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl">
+                Clear, decisive counsel{" "}
+                <span className="text-primary">when it matters most.</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-xl leading-relaxed text-muted">
+                A boutique firm pairing seasoned attorneys with modern case
+                intelligence — so your matter is handled with rigor, discretion,
+                and speed.
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <LinkButton href="#consult" size="lg">
+                  Request a consultation
+                </LinkButton>
+                <LinkButton href="#practice" variant="secondary" size="lg">
+                  Our practice areas
+                </LinkButton>
+              </div>
+            </div>
+            <div className="relative animate-fade-up [animation-delay:150ms]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-xl ring-1 ring-border sm:aspect-[5/4] lg:aspect-[4/5]">
+                <Image
+                  src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1100&q=80"
+                  alt="Law library — shelves of legal volumes"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 44vw, 100vw"
+                  className="object-cover"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary/25 to-transparent" />
+              </div>
+              <div className="absolute -bottom-5 left-5 rounded-xl border border-border bg-card px-5 py-3 shadow-lg">
+                <div className="font-serif text-2xl font-bold text-primary">98%</div>
+                <div className="text-xs text-muted">Client satisfaction</div>
+              </div>
             </div>
           </Container>
 

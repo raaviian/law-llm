@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Keep heavy/CJS Node libraries out of the server bundle (mammoth is CJS).
   // PDF extraction uses unpdf, which is serverless-safe and bundles fine.
   serverExternalPackages: ["mammoth"],
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+  },
 };
 
 export default nextConfig;

@@ -241,10 +241,10 @@ export default function Home() {
                 Book a consultation
               </p>
               <h2 className="mt-3 font-serif text-4xl font-semibold tracking-tight text-foreground">
-                Let's talk about your matter
+                Let&apos;s talk about your matter
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-muted">
-                Tell us a little about your situation and we'll arrange an
+                Tell us a little about your situation and we&apos;ll arrange an
                 initial consultation — confidential, no obligation.
               </p>
               <ul className="mt-8 space-y-3">

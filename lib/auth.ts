@@ -1,10 +1,15 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import { env, isGoogleAuthConfigured } from "@/lib/env";
 import { ensureOrgForUser } from "@/lib/orgs";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/** Thrown when the password is correct but the email isn't confirmed yet. */
+export class EmailNotVerifiedError extends CredentialsSignin {
+  code = "email_not_verified";
+}
 
 // Email + password. Hashes live in public.user_passwords (service-role only).
 const credentials = Credentials({
@@ -17,13 +22,16 @@ const credentials = Credentials({
     const admin = createAdminClient();
     const { data } = await admin
       .from("user_passwords")
-      .select("user_id, name, password_hash")
+      .select("user_id, name, password_hash, email_verified_at")
       .eq("email", email)
       .maybeSingle();
     if (!data?.password_hash) return null;
     const bcrypt = (await import("bcryptjs")).default;
     const ok = await bcrypt.compare(password, data.password_hash as string);
     if (!ok) return null;
+    // Only block once we know the password is right, so we don't leak which
+    // emails exist to someone guessing passwords.
+    if (!data.email_verified_at) throw new EmailNotVerifiedError();
     return { id: data.user_id as string, email, name: (data.name as string) ?? null };
   },
 });

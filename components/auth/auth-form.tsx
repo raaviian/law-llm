@@ -54,6 +54,7 @@ export function AuthForm({
         />
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.notice && <p className="text-sm text-green-700">{state.notice}</p>}
       <Button type="submit" disabled={pending} className="w-full">
         {pending
           ? mode === "signup"

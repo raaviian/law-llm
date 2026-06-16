@@ -1,11 +1,13 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureOrgForUser } from "@/lib/orgs";
+import { createAndSendVerification } from "@/lib/verification";
 
-export type AuthState = { error?: string } | undefined;
+export type AuthState = { error?: string; notice?: string } | undefined;
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -26,12 +28,24 @@ export async function authenticate(
       redirectTo: redirectTo(formData),
     });
   } catch (e) {
-    if (e instanceof AuthError) return { error: "Invalid email or password." };
+    if (e instanceof AuthError) {
+      if ((e as { code?: string }).code === "email_not_verified") {
+        return {
+          error:
+            "Please verify your email first — check your inbox for the link, or sign up again to resend it.",
+        };
+      }
+      return { error: "Invalid email or password." };
+    }
     throw e; // NEXT_REDIRECT and anything else must propagate
   }
 }
 
-/** Create an email/password account, bootstrap the org, then sign in. */
+/**
+ * Create an email/password account, bootstrap the org, send a verification
+ * email, then redirect to the login page asking the user to confirm. The
+ * account can't sign in until the email is verified.
+ */
 export async function signUpWithPassword(
   _prev: AuthState,
   formData: FormData,
@@ -78,17 +92,39 @@ export async function signUpWithPassword(
   if (pwErr) return { error: "Could not create your account. Please try again." };
 
   await ensureOrgForUser(userId, name || email);
+  await createAndSendVerification(userId, email, name);
 
-  try {
-    await signIn("credentials", {
-      email,
-      password,
-      redirectTo: redirectTo(formData),
-    });
-  } catch (e) {
-    if (e instanceof AuthError) {
-      return { error: "Account created — please sign in." };
-    }
-    throw e;
+  // redirect() throws NEXT_REDIRECT, which the form action propagates.
+  redirect(`/login?verify=sent&email=${encodeURIComponent(email)}`);
+}
+
+/** Re-send the verification link for an unverified password account. */
+export async function resendVerification(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) {
+    return { error: "Please enter a valid email address." };
   }
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("user_passwords")
+    .select("user_id, name, email_verified_at")
+    .eq("email", email)
+    .maybeSingle();
+
+  // Only send for a real, still-unverified account, but always show the same
+  // notice so we don't disclose which emails are registered.
+  if (data?.user_id && !data.email_verified_at) {
+    await createAndSendVerification(
+      data.user_id as string,
+      email,
+      (data.name as string) ?? null,
+    );
+  }
+  return {
+    notice: "If that account needs verifying, we've sent a fresh link to your inbox.",
+  };
 }

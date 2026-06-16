@@ -6,7 +6,7 @@ import { AuthShell, AuthDivider } from "@/components/auth/auth-shell";
 import { AuthForm } from "@/components/auth/auth-form";
 import { GoogleButton } from "@/components/auth/google-button";
 
-export default async function LoginPage({
+export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
@@ -14,16 +14,16 @@ export default async function LoginPage({
   const session = await auth();
   if (session?.user) redirect("/dashboard");
   const { callbackUrl } = await searchParams;
-  const signupHref = callbackUrl
-    ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
-    : "/signup";
+  const loginHref = callbackUrl
+    ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/login";
 
   return (
     <AuthShell
-      title="Sign in to your workspace"
-      subtitle="Continue to manage your cases and chat with your files."
+      title="Create your account"
+      subtitle="Start managing cases and chatting with your files in minutes."
     >
-      <AuthForm mode="login" callbackUrl={callbackUrl} />
+      <AuthForm mode="signup" callbackUrl={callbackUrl} />
       {isGoogleAuthConfigured && (
         <>
           <AuthDivider />
@@ -31,9 +31,9 @@ export default async function LoginPage({
         </>
       )}
       <p className="mt-6 text-center text-sm text-muted">
-        Don&apos;t have an account?{" "}
-        <Link href={signupHref} className="font-medium text-primary hover:underline">
-          Sign up
+        Already have an account?{" "}
+        <Link href={loginHref} className="font-medium text-primary hover:underline">
+          Sign in
         </Link>
       </p>
     </AuthShell>

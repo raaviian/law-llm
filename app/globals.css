@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode (Tailwind v4). The `:where()` keeps specificity
+   at 0 so `dark:` utilities still override base utilities as expected. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -9,6 +13,22 @@
   --primary: #1e3a8a;
   --primary-foreground: #ffffff;
   --accent: #c2a14d;
+}
+
+/* Dark theme — overrides the variables above so every var-backed utility
+   (bg-card, text-foreground, border-border, …) re-themes automatically.
+   Keeps the navy/gold identity with a slightly brighter primary/accent for
+   legibility on dark surfaces. */
+.dark {
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+  --card: #131c2e;
+  --border: #28344a;
+  --muted: #94a3b8;
+  --primary: #3b5bbf;
+  --primary-foreground: #ffffff;
+  --accent: #d4b86a;
+  color-scheme: dark;
 }
 
 @theme inline {

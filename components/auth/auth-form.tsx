@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   authenticate,
   signUpWithPassword,
   type AuthState,
 } from "@/lib/auth-actions";
 import { Button, Input, Label } from "@/components/ui";
+import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter";
 
 export function AuthForm({
   mode,
@@ -20,6 +21,8 @@ export function AuthForm({
     action,
     undefined,
   );
+  const [password, setPassword] = useState("");
+  const isSignup = mode === "signup";
 
   return (
     <form action={formAction} className="space-y-3.5">
@@ -48,10 +51,17 @@ export function AuthForm({
           name="password"
           type="password"
           required
-          minLength={8}
-          placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
-          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          minLength={isSignup ? 16 : 8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={isSignup ? "At least 16 characters" : "Your password"}
+          autoComplete={isSignup ? "new-password" : "current-password"}
         />
+        {isSignup && password.length > 0 && (
+          <div className="mt-2">
+            <PasswordStrengthMeter value={password} />
+          </div>
+        )}
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state?.notice && <p className="text-sm text-green-700">{state.notice}</p>}

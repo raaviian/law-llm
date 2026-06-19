@@ -39,7 +39,7 @@ export function OrgSwitcher({
           router.refresh();
         });
       }}
-      className="max-w-[12rem] truncate rounded-md border border-border bg-white px-2 py-1.5 text-sm text-foreground outline-none hover:bg-slate-50 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+      className="max-w-[12rem] truncate rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground outline-none hover:bg-foreground/5 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
     >
       {orgs.map((o) => (
         <option key={o.org_id} value={o.org_id}>

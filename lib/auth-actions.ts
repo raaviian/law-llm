@@ -56,7 +56,17 @@ export async function signUpWithPassword(
 
   if (!name) return { error: "Please enter your name." };
   if (!EMAIL_RE.test(email)) return { error: "Please enter a valid email address." };
-  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password.length < 16) {
+    return { error: "Password must be at least 16 characters." };
+  }
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return { error: "Password must include at least one symbol." };
+  }
+  if (!/[0-9]/.test(password) || !/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+    return {
+      error: "Password must include upper- and lower-case letters and a number.",
+    };
+  }
 
   const admin = createAdminClient();
 

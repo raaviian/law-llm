@@ -115,3 +115,37 @@ export const ClockIcon = (p: P) => (
     <path d="M12 7v5l3 2" />
   </Base>
 );
+export const SunIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+  </Base>
+);
+export const MoonIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+  </Base>
+);
+export const UserIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </Base>
+);
+export const UsersIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 21a6.5 6.5 0 0 1 13 0M16 5.5a3.5 3.5 0 0 1 0 6.8M17.5 21a6.5 6.5 0 0 0-3-5.5" />
+  </Base>
+);
+export const CreditCardIcon = (p: P) => (
+  <Base {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M3 10h18M7 15h4" />
+  </Base>
+);
+export const ActivityIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M3 12h4l3 8 4-16 3 8h4" />
+  </Base>
+);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LinkButton } from "@/components/ui";
 import { NavLink } from "@/components/nav-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Logo({
   className,
@@ -47,10 +48,11 @@ export function SiteHeader() {
           <NavLink href="/pricing">Pricing</NavLink>
           <Link
             href="/login"
-            className="hidden rounded-md px-3 py-2 text-base font-medium text-muted transition-colors hover:bg-slate-100 hover:text-foreground sm:inline"
+            className="hidden rounded-md px-3 py-2 text-base font-medium text-muted transition-colors hover:bg-foreground/10 hover:text-foreground sm:inline"
           >
             Sign in
           </Link>
+          <ThemeToggle />
           <LinkButton href="/login" size="md" className="ml-1">
             Get started
           </LinkButton>

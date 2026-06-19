@@ -30,7 +30,7 @@ export function NavLink({
         "rounded-md px-3 py-2 text-base font-medium transition-colors",
         active
           ? "bg-primary/10 text-primary"
-          : "text-muted hover:bg-slate-100 hover:text-foreground",
+          : "text-muted hover:bg-foreground/10 hover:text-foreground",
       )}
     >
       {children}

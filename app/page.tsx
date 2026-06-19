@@ -67,7 +67,7 @@ export default function Home() {
           <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.06] via-transparent to-transparent" />
           <Container className="grid items-center gap-12 py-20 lg:grid-cols-2 lg:py-28">
             <div className="animate-fade-up">
-              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-sm font-medium text-[#8a6d1f]">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-sm font-medium text-accent">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 Trusted legal counsel since 1998
               </p>
@@ -137,7 +137,7 @@ export default function Home() {
                 <Reveal
                   key={p.title}
                   delay={["", "delay-100", "delay-200"][i % 3]}
-                  className="group rounded-xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md"
+                  className="group h-full rounded-xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md"
                 >
                   <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/[0.07] text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                     <p.icon className="h-6 w-6" />
@@ -155,7 +155,7 @@ export default function Home() {
         </section>
 
         {/* Case results — navy band with gold numbers */}
-        <section className="bg-primary py-20 text-primary-foreground">
+        <section className="bg-primary py-24 text-primary-foreground dark:bg-[#0b1120]">
           <Container>
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-semibold uppercase tracking-widest text-accent">
@@ -181,7 +181,7 @@ export default function Home() {
               {results.map((r) => (
                 <Reveal
                   key={r.headline}
-                  className="rounded-xl border border-white/15 bg-white/[0.06] p-6 backdrop-blur"
+                  className="h-full rounded-xl border border-white/15 bg-white/[0.06] p-6 backdrop-blur"
                 >
                   <QuoteIcon className="h-6 w-6 text-accent" />
                   <p className="mt-3 text-xl font-semibold">{r.headline}</p>
@@ -214,7 +214,7 @@ export default function Home() {
                 <Reveal
                   key={a.name}
                   delay={["", "delay-100", "delay-200", "delay-300"][i]}
-                  className="rounded-xl border border-border bg-background p-6 text-center"
+                  className="h-full rounded-xl border border-border bg-background p-6 text-center"
                 >
                   <span
                     className="mx-auto grid h-20 w-20 place-items-center rounded-full font-serif text-2xl font-semibold text-white"
@@ -235,7 +235,7 @@ export default function Home() {
 
         {/* Consultation booking */}
         <section id="consult" className="scroll-mt-20 py-24">
-          <Container className="grid items-start gap-12 lg:grid-cols-2">
+          <Container className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal>
               <p className="text-sm font-semibold uppercase tracking-widest text-accent">
                 Book a consultation
@@ -254,7 +254,7 @@ export default function Home() {
                   "Everything you share is confidential and privileged",
                 ].map((t) => (
                   <li key={t} className="flex items-start gap-3 text-base text-foreground">
-                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
                       <CheckIcon className="h-3.5 w-3.5" />
                     </span>
                     {t}

@@ -57,7 +57,7 @@ export default async function DashboardPage() {
               className={cn(
                 "grid h-11 w-11 shrink-0 place-items-center rounded-xl",
                 s.accent
-                  ? "bg-accent/15 text-[#8a6d1f]"
+                  ? "bg-accent/15 text-accent"
                   : "bg-primary/10 text-primary",
               )}
             >
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-foreground">
                 Matters by status
               </h2>
-              <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-foreground/10">
                 {segments.map(
                   (seg) =>
                     seg.count > 0 && (
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
                   <li key={c.id}>
                     <Link
                       href={`/cases/${c.id}`}
-                      className="group flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-slate-50"
+                      className="group flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-foreground/5"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">

@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { MEMBER_TITLES } from "@/lib/titles";
 
 // Button ----------------------------------------------------------------------
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -10,8 +11,8 @@ const buttonBase =
   "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 const buttonVariants: Record<ButtonVariant, string> = {
   primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-  secondary: "border border-border bg-white text-foreground hover:bg-slate-50",
-  ghost: "text-muted hover:bg-slate-100 hover:text-foreground",
+  secondary: "border border-border bg-card text-foreground hover:bg-foreground/5",
+  ghost: "text-muted hover:bg-foreground/10 hover:text-foreground",
   danger: "bg-red-600 text-white hover:bg-red-700",
 };
 const buttonSizes: Record<ButtonSize, string> = {
@@ -82,7 +83,7 @@ export function Card({
 
 // Form fields -----------------------------------------------------------------
 export const inputClass =
-  "w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(inputClass, props.className)} {...props} />;
@@ -117,25 +118,56 @@ export function Label({
 }
 
 // Badge -----------------------------------------------------------------------
+// Tint pattern reads in both themes (the old `-50` backgrounds vanished on dark
+// surfaces): translucent fill + ring, with a lighter text in dark mode.
+const badgeBase =
+  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset";
+const slateTint =
+  "bg-slate-500/15 text-slate-700 ring-slate-500/30 dark:text-slate-300";
 const statusStyles: Record<string, string> = {
-  open: "bg-blue-50 text-blue-700 ring-blue-600/20",
-  active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  closed: "bg-slate-100 text-slate-600 ring-slate-500/20",
-  ready: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  processing: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  uploaded: "bg-slate-100 text-slate-600 ring-slate-500/20",
-  failed: "bg-red-50 text-red-700 ring-red-600/20",
+  open: "bg-blue-500/15 text-blue-700 ring-blue-500/30 dark:text-blue-300",
+  active: "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300",
+  closed: slateTint,
+  ready: "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300",
+  processing: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300",
+  uploaded: slateTint,
+  failed: "bg-red-500/15 text-red-700 ring-red-500/30 dark:text-red-300",
 };
 
 export function Badge({ status }: { status: string }) {
   return (
+    <span className={cn(badgeBase, statusStyles[status] ?? slateTint)}>
+      {status}
+    </span>
+  );
+}
+
+// Permission-role badge (owner / admin / member).
+const roleStyles: Record<string, string> = {
+  owner: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300",
+  admin: "bg-primary/15 text-primary ring-primary/30",
+  member: slateTint,
+};
+
+export function RoleBadge({ role }: { role: string }) {
+  return (
+    <span className={cn(badgeBase, roleStyles[role] ?? slateTint)}>{role}</span>
+  );
+}
+
+// Professional-title badge (Partner, Senior Lawyer, …). Neutral so it reads as
+// an attribute rather than a status. Renders nothing when no title is set.
+export function TitleBadge({ title }: { title: string | null | undefined }) {
+  if (!title) return null;
+  const label = MEMBER_TITLES[title as keyof typeof MEMBER_TITLES] ?? title;
+  return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset",
-        statusStyles[status] ?? "bg-slate-100 text-slate-600 ring-slate-500/20",
+        badgeBase,
+        "bg-foreground/5 text-foreground ring-border",
       )}
     >
-      {status}
+      {label}
     </span>
   );
 }
@@ -144,7 +176,7 @@ export function Badge({ status }: { status: string }) {
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-slate-200/80", className)}
+      className={cn("animate-pulse rounded-md bg-foreground/10", className)}
       aria-hidden="true"
     />
   );

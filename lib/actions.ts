@@ -21,6 +21,7 @@ import { getOrgName } from "@/lib/access";
 import { env } from "@/lib/env";
 import { getCase } from "@/lib/data";
 import { listUserOrgs, ACTIVE_ORG_COOKIE } from "@/lib/orgs";
+import { MEMBER_TITLES, isMemberTitle, type MemberTitle } from "@/lib/titles";
 import { retrieveContext, buildContextBlock } from "@/lib/ai/rag";
 import { generateCaseStrategy, type GeneratedStrategy } from "@/lib/ai/strategy";
 import { getOrgAiConfig } from "@/lib/ai/llm";
@@ -196,6 +197,35 @@ export async function removeTeamMember(targetUserId: string) {
     action: "member.remove",
     targetType: "org",
     summary: "Removed a member",
+  });
+  revalidatePath("/settings/team");
+}
+
+export async function setMemberTitle(targetUserId: string, formData: FormData) {
+  const { user, orgId } = await assertOrgManager();
+  const raw = String(formData.get("title") ?? "").trim();
+  let title: MemberTitle | null = null;
+  if (raw !== "") {
+    if (!isMemberTitle(raw)) throw new Error("Invalid title.");
+    title = raw;
+  }
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("memberships")
+    .update({ title })
+    .eq("org_id", orgId)
+    .eq("user_id", targetUserId);
+  if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "member.update",
+    targetType: "org",
+    targetId: targetUserId,
+    summary: title
+      ? `Set a member's title to ${MEMBER_TITLES[title]}`
+      : "Cleared a member's title",
   });
   revalidatePath("/settings/team");
 }

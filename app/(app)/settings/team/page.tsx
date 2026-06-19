@@ -3,9 +3,10 @@ import { getOrgRole, listOrgMembers } from "@/lib/access";
 import { listInvitations } from "@/lib/invites";
 import { inviteMember, revokeInvite, removeTeamMember } from "@/lib/actions";
 import { env } from "@/lib/env";
-import { Card, Input, Label } from "@/components/ui";
+import { Card, Input, Label, RoleBadge, TitleBadge } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { CopyButton } from "@/components/copy-button";
+import { MemberTitleSelect } from "@/components/member-title-select";
 import { formatDate } from "@/lib/utils";
 
 export default async function TeamPage() {
@@ -53,7 +54,7 @@ export default async function TeamPage() {
                 id="role"
                 name="role"
                 defaultValue="member"
-                className="h-11 rounded-lg border border-border bg-white px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="h-11 rounded-lg border border-border bg-card px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
@@ -116,10 +117,10 @@ export default async function TeamPage() {
             return (
               <li
                 key={m.user_id}
-                className="flex items-center justify-between gap-3 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
               >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                     {(m.name || m.email || "U").trim().charAt(0).toUpperCase()}
                   </span>
                   <div className="min-w-0">
@@ -129,19 +130,25 @@ export default async function TeamPage() {
                         <span className="ml-1 text-xs text-muted">(you)</span>
                       )}
                     </p>
-                    <p className="text-xs capitalize text-muted">{m.role}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <RoleBadge role={m.role} />
+                      <TitleBadge title={m.title} />
+                    </div>
                   </div>
                 </div>
-                {canManage && !isSelf && !isLastOwner && (
-                  <form action={removeTeamMember.bind(null, m.user_id)}>
-                    <button
-                      type="submit"
-                      className="text-xs text-muted hover:text-red-600"
-                    >
-                      Remove
-                    </button>
-                  </form>
-                )}
+                <div className="flex items-center gap-3">
+                  {canManage && <MemberTitleSelect userId={m.user_id} title={m.title} />}
+                  {canManage && !isSelf && !isLastOwner && (
+                    <form action={removeTeamMember.bind(null, m.user_id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-muted hover:text-red-600"
+                      >
+                        Remove
+                      </button>
+                    </form>
+                  )}
+                </div>
               </li>
             );
           })}

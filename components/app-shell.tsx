@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GlobalLoading } from "@/components/loading-overlay";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { signOutAction } from "@/lib/auth-actions";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen">
+      <GlobalLoading />
       {/* Desktop sidebar */}
       <aside
         className={cn(

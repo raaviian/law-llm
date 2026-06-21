@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CollectionView } from "@/components/collection-view";
+import { useLoadingEffect } from "@/components/loading-overlay";
 import { CopyButton } from "@/components/copy-button";
 import { PencilIcon, TrashIcon, ShareIcon } from "@/components/icons";
 import { renameThread, deleteThread, setThreadShare } from "@/lib/actions";
@@ -66,6 +67,7 @@ function ThreadRow({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  useLoadingEffect(pending);
   const [menu, setMenu] = useState<null | "rename" | "share">(null);
   const [name, setName] = useState(thread.title);
   const [role, setRole] = useState<Role>(thread.share_min_role ?? "member");

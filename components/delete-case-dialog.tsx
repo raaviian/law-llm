@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { deleteCase } from "@/lib/actions";
 import { Button, Card, Input } from "@/components/ui";
+import { useLoadingEffect } from "@/components/loading-overlay";
 
 /**
  * Sensitive case deletion: the Delete button stays disabled until the user
@@ -19,6 +20,7 @@ export function DeleteCaseDialog({
   const [typed, setTyped] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  useLoadingEffect(pending);
   const confirmed = typed.trim() === caseTitle.trim();
 
   return (

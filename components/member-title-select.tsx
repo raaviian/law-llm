@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setMemberTitle } from "@/lib/actions";
 import { MEMBER_TITLES } from "@/lib/titles";
+import { useLoadingEffect } from "@/components/loading-overlay";
 
 /**
  * Owner/admin control to assign a member's professional title. Submits on
@@ -18,6 +19,7 @@ export function MemberTitleSelect({
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  useLoadingEffect(pending);
 
   return (
     <select

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button, Card, Label, Textarea } from "@/components/ui";
 import { CollectionView } from "@/components/collection-view";
+import { useLoadingEffect } from "@/components/loading-overlay";
 import { TrashIcon } from "@/components/icons";
 import { saveDraft, deleteDraft } from "@/lib/actions";
 import { useRouter } from "next/navigation";
@@ -37,6 +38,7 @@ export function DraftPanel({
   const [saved, setSaved] = useState(false);
   const [isSaving, startSaving] = useTransition();
   const [selected, setSelected] = useState<Draft | null>(null);
+  useLoadingEffect(busy || isSaving);
 
   const typeLabel = typeLabelOf(docType);
 

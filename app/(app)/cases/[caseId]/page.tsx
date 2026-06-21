@@ -12,8 +12,9 @@ import {
   listCaseAccess,
   canManageCase,
 } from "@/lib/access";
-import { Card } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import { CaseAccess } from "@/components/case-access";
+import { CaseStatusSelect } from "@/components/case-status-select";
 import { DeleteCaseDialog } from "@/components/delete-case-dialog";
 import { formatDate } from "@/lib/utils";
 
@@ -95,6 +96,16 @@ export default async function CaseOverviewPage({
         <Card className="p-6">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Details</h2>
           <dl className="space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted">Status</dt>
+              <dd>
+                {canManage ? (
+                  <CaseStatusSelect caseId={caseId} status={c.status} />
+                ) : (
+                  <Badge status={c.status} />
+                )}
+              </dd>
+            </div>
             <Detail label="Client" value={c.client_name} />
             <Detail label="Case number" value={c.case_number} />
             <Detail label="Court" value={c.court} />

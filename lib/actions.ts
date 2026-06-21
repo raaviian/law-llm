@@ -321,6 +321,32 @@ async function assertCaseManager(caseId: string) {
   return { user, admin, orgId: c.org_id as string };
 }
 
+export async function setCaseStatus(
+  caseId: string,
+  status: "open" | "active" | "closed",
+) {
+  if (!["open", "active", "closed"].includes(status)) {
+    throw new Error("Invalid status.");
+  }
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+  await admin
+    .from("cases")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", caseId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: `Set status to ${status}`,
+  });
+  revalidatePath(`/cases/${caseId}`);
+  revalidatePath("/cases");
+}
+
 export async function setCaseVisibility(
   caseId: string,
   visibility: "org" | "private",

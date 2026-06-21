@@ -21,7 +21,7 @@ export default async function CaseLayout({
     <div className="space-y-6">
       <div>
         <Link
-          href="/dashboard"
+          href="/cases"
           className="text-sm text-muted hover:text-foreground"
         >
           ← Back to cases

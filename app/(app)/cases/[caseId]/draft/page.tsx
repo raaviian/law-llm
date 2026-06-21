@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/session";
-import { listDocuments } from "@/lib/data";
+import { listDocuments, listDrafts } from "@/lib/data";
 import { DraftPanel } from "@/components/draft-panel";
 
 export default async function DraftPage({
@@ -9,7 +9,10 @@ export default async function DraftPage({
 }) {
   const { caseId } = await params;
   const user = await requireUser();
-  const docs = await listDocuments(user.id, caseId);
+  const [docs, drafts] = await Promise.all([
+    listDocuments(user.id, caseId),
+    listDrafts(user.id, caseId),
+  ]);
   const hasDocuments = docs.some((d) => d.status === "ready");
 
   return (
@@ -21,7 +24,7 @@ export default async function DraftPage({
           review, edit, and save it.
         </p>
       </div>
-      <DraftPanel caseId={caseId} hasDocuments={hasDocuments} />
+      <DraftPanel caseId={caseId} hasDocuments={hasDocuments} drafts={drafts} />
     </div>
   );
 }

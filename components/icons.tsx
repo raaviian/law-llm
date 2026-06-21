@@ -149,3 +149,53 @@ export const ActivityIcon = (p: P) => (
     <path d="M3 12h4l3 8 4-16 3 8h4" />
   </Base>
 );
+export const GridIcon = (p: P) => (
+  <Base {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </Base>
+);
+export const ListIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+  </Base>
+);
+export const SearchIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m21 21-4.3-4.3" />
+  </Base>
+);
+export const FilterIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z" />
+  </Base>
+);
+export const TrashIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
+  </Base>
+);
+export const ShareIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="18" cy="5" r="3" />
+    <circle cx="6" cy="12" r="3" />
+    <circle cx="18" cy="19" r="3" />
+    <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+  </Base>
+);
+export const PencilIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+    <path d="m14 7 3 3" />
+  </Base>
+);
+export const KanbanIcon = (p: P) => (
+  <Base {...p}>
+    <rect x="3" y="4" width="5" height="16" rx="1" />
+    <rect x="10" y="4" width="5" height="11" rx="1" />
+    <rect x="17" y="4" width="4" height="7" rx="1" />
+  </Base>
+);

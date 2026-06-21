@@ -29,7 +29,7 @@ export default async function AppLayout({
             <Logo href="/dashboard" />
             <OrgSwitcher orgs={orgs} activeOrgId={activeOrgId} />
             <nav className="hidden items-center gap-1 sm:flex">
-              <NavLink href="/dashboard" prefixes={["/dashboard", "/cases"]}>
+              <NavLink href="/cases" prefixes={["/cases", "/dashboard"]}>
                 Cases
               </NavLink>
               <NavLink href="/settings/team" prefixes={["/settings/team"]}>

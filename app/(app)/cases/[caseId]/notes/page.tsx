@@ -1,9 +1,9 @@
 import { requireUser } from "@/lib/session";
 import { listNotes } from "@/lib/data";
-import { createNote, deleteNote } from "@/lib/actions";
-import { Card, EmptyState, Input, Label } from "@/components/ui";
+import { createNote } from "@/lib/actions";
+import { Card, EmptyState, Input, Label, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
-import { formatDateTime } from "@/lib/utils";
+import { NotesView } from "@/components/notes-view";
 
 export default async function NotesPage({
   params,
@@ -24,36 +24,7 @@ export default async function NotesPage({
             description="Capture observations, call summaries, and to-dos for this matter."
           />
         ) : (
-          notes.map((n) => (
-            <Card key={n.id} className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  {n.title && (
-                    <h3 className="font-medium text-foreground">{n.title}</h3>
-                  )}
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
-                    {n.body}
-                  </p>
-                  <p className="mt-2 text-xs text-muted">
-                    {formatDateTime(n.created_at)}
-                  </p>
-                </div>
-                <form
-                  action={async () => {
-                    "use server";
-                    await deleteNote(caseId, n.id);
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="text-xs text-muted hover:text-red-600"
-                  >
-                    Delete
-                  </button>
-                </form>
-              </div>
-            </Card>
-          ))
+          <NotesView caseId={caseId} notes={notes} />
         )}
       </div>
 
@@ -69,14 +40,7 @@ export default async function NotesPage({
           </div>
           <div>
             <Label htmlFor="body">Note</Label>
-            <textarea
-              id="body"
-              name="body"
-              rows={5}
-              required
-              placeholder="Write your note…"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
+            <Textarea id="body" name="body" rows={5} required placeholder="Write your note…" />
           </div>
           <SubmitButton pendingText="Saving…" className="w-full">
             Save note

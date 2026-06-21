@@ -6,15 +6,15 @@ import {
   listNotes,
   listDeadlines,
 } from "@/lib/data";
-import { deleteCase } from "@/lib/actions";
 import {
   getOrgRole,
   listOrgMembers,
   listCaseAccess,
   canManageCase,
 } from "@/lib/access";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { CaseAccess } from "@/components/case-access";
+import { DeleteCaseDialog } from "@/components/delete-case-dialog";
 import { formatDate } from "@/lib/utils";
 
 export default async function CaseOverviewPage({
@@ -118,23 +118,7 @@ export default async function CaseOverviewPage({
           />
         )}
 
-        <Card className="border-red-200 p-6">
-          <h2 className="text-sm font-semibold text-foreground">Danger zone</h2>
-          <p className="mt-1 text-sm text-muted">
-            Deleting a case removes its documents, notes, and chats.
-          </p>
-          <form
-            action={async () => {
-              "use server";
-              await deleteCase(caseId);
-            }}
-            className="mt-3"
-          >
-            <Button type="submit" variant="danger" size="sm">
-              Delete case
-            </Button>
-          </form>
-        </Card>
+        <DeleteCaseDialog caseId={caseId} caseTitle={c.title} />
       </div>
     </div>
   );

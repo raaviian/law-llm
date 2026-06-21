@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   ChatThread,
   Deadline,
+  Draft,
   Note,
   Strategy,
 } from "@/lib/types";
@@ -78,6 +79,33 @@ export async function listNotes(
     .order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as Note[];
+}
+
+export async function listDrafts(
+  userId: string,
+  caseId: string,
+): Promise<Draft[]> {
+  const supabase = await createUserClient(userId);
+  const { data, error } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("case_id", caseId)
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Draft[];
+}
+
+export async function getDraft(
+  userId: string,
+  draftId: string,
+): Promise<Draft | null> {
+  const supabase = await createUserClient(userId);
+  const { data } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("id", draftId)
+    .maybeSingle();
+  return (data as Draft) ?? null;
 }
 
 export async function listDeadlines(

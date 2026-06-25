@@ -1,12 +1,15 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractPages } from "@/lib/ai/extract";
+import { pagesToMarkdown } from "@/lib/ai/markdown";
 import { chunkPages } from "@/lib/ai/chunk";
 import { embedTexts } from "@/lib/ai/embeddings";
 import { analyzeDocument } from "@/lib/ai/analyze";
 import { getOrgAiConfig } from "@/lib/ai/llm";
 
-const EMBED_BATCH = 100;
+// How many chunk rows to insert per DB round-trip (embedding batching/rate
+// limiting is handled inside embedTexts).
+const INSERT_BATCH = 100;
 
 /**
  * Process an uploaded document end-to-end: download → extract text → chunk →
@@ -35,21 +38,24 @@ export async function ingestDocument(documentId: string): Promise<void> {
     if (dlErr || !blob) throw new Error(`Download failed: ${dlErr?.message}`);
 
     const buffer = Buffer.from(await blob.arrayBuffer());
-    const pages = await extractPages(buffer, doc.mime_type ?? "", doc.file_name);
+    const rawPages = await extractPages(buffer, doc.mime_type ?? "", doc.file_name);
+    // Normalize into compact markdown (de-hyphenate, drop running headers/
+    // footers + page numbers, collapse whitespace) to cut embedding tokens.
+    const pages = pagesToMarkdown(rawPages);
     const chunks = chunkPages(pages);
 
     if (chunks.length === 0) {
       throw new Error("No extractable text found in this file.");
     }
 
-    // Embed + insert in batches to respect API limits.
-    for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
-      const batch = chunks.slice(i, i + EMBED_BATCH);
-      const embeddings = await embedTexts(
-        batch.map((c) => c.content),
-        "document",
-      );
-      const rows = batch.map((c, j) => ({
+    // embedTexts batches + rate-limits internally; embed all chunks, then
+    // insert the rows in DB-sized groups.
+    const embeddings = await embedTexts(
+      chunks.map((c) => c.content),
+      "document",
+    );
+    for (let i = 0; i < chunks.length; i += INSERT_BATCH) {
+      const rows = chunks.slice(i, i + INSERT_BATCH).map((c, j) => ({
         document_id: doc.id,
         case_id: doc.case_id,
         org_id: doc.org_id,
@@ -57,7 +63,7 @@ export async function ingestDocument(documentId: string): Promise<void> {
         page: c.page,
         chunk_index: c.index,
         tokens: c.tokens,
-        embedding: embeddings[j] as unknown as string,
+        embedding: embeddings[i + j] as unknown as string,
       }));
       const { error: insErr } = await admin.from("document_chunks").insert(rows);
       if (insErr) throw new Error(`Chunk insert failed: ${insErr.message}`);

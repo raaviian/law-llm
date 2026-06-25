@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CollectionView } from "@/components/collection-view";
 import { Badge, Card } from "@/components/ui";
+import { EmbedDriver } from "@/components/embed-driver";
 import { TrashIcon } from "@/components/icons";
 import { deleteDocument } from "@/lib/actions";
 import { formatDate, formatBytes, withinDays } from "@/lib/utils";
@@ -59,6 +60,13 @@ export function DocumentsView({
       }}
       renderItem={(d, view) => {
         const meta = `${formatBytes(d.size)}${d.page_count ? ` · ${d.page_count} pages` : ""} · ${formatDate(d.created_at)}`;
+        // While a document is still indexing, drive + show embedding progress.
+        const statusNode =
+          d.status === "processing" ? (
+            <EmbedDriver documentId={d.id} />
+          ) : (
+            <Badge status={d.status} />
+          );
         const deleteForm = (
           <form action={deleteDocument.bind(null, caseId, d.id)}>
             <button
@@ -91,7 +99,7 @@ export function DocumentsView({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <Badge status={d.status} />
+                {statusNode}
                 {deleteForm}
               </div>
             </div>
@@ -106,7 +114,7 @@ export function DocumentsView({
               >
                 {d.file_name}
               </Link>
-              <Badge status={d.status} />
+              {statusNode}
             </div>
             <p className="mt-1 text-xs text-muted">{meta}</p>
             {d.summary && (

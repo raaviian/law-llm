@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getCase } from "@/lib/data";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ingestDocument } from "@/lib/ingest";
+import { prepareDocument, embedPendingChunks } from "@/lib/ingest";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -83,11 +83,14 @@ export async function POST(req: Request) {
     summary: `Uploaded “${file.name}”`,
   });
 
-  // Ingest inline (MVP). For large files, move this to a background queue.
+  // Phase 1: extract + chunk + summary (fast, no embeddings). Then embed one
+  // slice inline so small files finish right away; the client drives the rest
+  // (/api/documents/embed) at a rate-limit-safe pace for large files.
   try {
-    await ingestDocument(doc.id);
+    await prepareDocument(doc.id);
+    await embedPendingChunks(doc.id).catch(() => {});
   } catch {
-    // Status is already marked "failed" inside ingestDocument; surface 200 so
+    // Status is already marked "failed" inside prepareDocument; surface 200 so
     // the UI can show the per-document error state.
   }
 

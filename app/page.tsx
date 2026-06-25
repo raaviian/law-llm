@@ -154,8 +154,8 @@ export default function Home() {
           </Container>
         </section>
 
-        {/* Case results — navy band with gold numbers */}
-        <section className="bg-primary py-24 text-primary-foreground dark:bg-[#0b1120]">
+        {/* Case results — deep spotlight band */}
+        <section className="bg-surface-deep py-24 text-on-deep">
           <Container>
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-semibold uppercase tracking-widest text-accent">
@@ -171,7 +171,7 @@ export default function Home() {
                   <div className="font-serif text-4xl font-bold text-accent sm:text-5xl">
                     {s.value}
                   </div>
-                  <div className="mt-2 text-sm text-primary-foreground/70">
+                  <div className="mt-2 text-sm text-on-deep/70">
                     {s.label}
                   </div>
                 </Reveal>
@@ -186,13 +186,13 @@ export default function Home() {
                   <QuoteIcon className="h-6 w-6 text-accent" />
                   <p className="mt-3 text-xl font-semibold">{r.headline}</p>
                   <p className="text-sm font-medium text-accent">{r.area}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-primary-foreground/75">
+                  <p className="mt-2 text-sm leading-relaxed text-on-deep/75">
                     {r.body}
                   </p>
                 </Reveal>
               ))}
             </div>
-            <p className="mt-6 text-center text-xs text-primary-foreground/50">
+            <p className="mt-6 text-center text-xs text-on-deep/50">
               Prior results do not guarantee a similar outcome. Illustrative case summaries.
             </p>
           </Container>
@@ -218,7 +218,7 @@ export default function Home() {
                 >
                   <span
                     className="mx-auto grid h-20 w-20 place-items-center rounded-full font-serif text-2xl font-semibold text-white"
-                    style={{ background: "linear-gradient(135deg,#1e3a8a,#3b5bbf)" }}
+                    style={{ background: "linear-gradient(135deg,#2563eb,#5b8def)" }}
                   >
                     {initials(a.name)}
                   </span>

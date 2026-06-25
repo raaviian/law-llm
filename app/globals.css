@@ -4,30 +4,36 @@
    at 0 so `dark:` utilities still override base utilities as expected. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* "Midnight" — a futuristic, minimalist, single-accent system. The app is
+   dark-first; light is a refined counterpart. Every surface is var-backed so
+   changing these tokens re-themes the whole app. */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f7f8fa;
+  --foreground: #0b0e14;
   --card: #ffffff;
-  --border: #e2e8f0;
-  --muted: #475569;
-  --primary: #1e3a8a;
+  --border: #e7e9ee;
+  --muted: #586072;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --accent: #c2a14d;
+  --accent: #2563eb;
+  /* Deep "spotlight" surface used for hero/feature bands (var-backed so it
+     adapts per theme instead of hardcoding navy). */
+  --surface-deep: #0b0e14;
+  --on-deep: #e6e8ec;
 }
 
-/* Dark theme — overrides the variables above so every var-backed utility
-   (bg-card, text-foreground, border-border, …) re-themes automatically.
-   Keeps the navy/gold identity with a slightly brighter primary/accent for
-   legibility on dark surfaces. */
+/* Dark theme — the default. Cool steel-blue accent on near-black surfaces. */
 .dark {
-  --background: #0b1120;
-  --foreground: #e2e8f0;
-  --card: #131c2e;
-  --border: #28344a;
-  --muted: #94a3b8;
-  --primary: #3b5bbf;
-  --primary-foreground: #ffffff;
-  --accent: #d4b86a;
+  --background: #0b0e14;
+  --foreground: #e6e8ec;
+  --card: #131822;
+  --border: #232a36;
+  --muted: #8a93a3;
+  --primary: #5b8def;
+  --primary-foreground: #08111f;
+  --accent: #5b8def;
+  --surface-deep: #0e1320;
+  --on-deep: #e6e8ec;
   color-scheme: dark;
 }
 
@@ -40,11 +46,13 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
+  --color-surface-deep: var(--surface-deep);
+  --color-on-deep: var(--on-deep);
 
-  /* Type system */
+  /* Type system — geometric sans display + clean sans body. */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-source-serif), ui-serif, Georgia, "Times New Roman",
-    serif;
+  --font-serif: var(--font-space-grotesk), var(--font-inter), ui-sans-serif,
+    system-ui, sans-serif;
 
   /* Animations (generate animate-* utilities) */
   --animate-fade-up: fade-up 0.6s ease-out both;

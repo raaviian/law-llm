@@ -26,7 +26,7 @@ const sections = [
     href: "/settings/ai",
     icon: SparkIcon,
     title: "AI",
-    desc: "Bring your own AI provider and model (BYOK).",
+    desc: "Use your own AI provider and model, or keep the free shared one.",
   },
   {
     href: "/settings/audit",

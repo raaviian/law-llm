@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
 import { generateStrategy } from "@/lib/actions";
+import { useLoadingEffect } from "@/components/loading-overlay";
 
 export function GenerateStrategyButton({
   caseId,
@@ -13,6 +14,7 @@ export function GenerateStrategyButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  useLoadingEffect(pending);
 
   function run() {
     setError(null);

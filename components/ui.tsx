@@ -10,7 +10,8 @@ type ButtonSize = "sm" | "md" | "lg";
 const buttonBase =
   "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+  primary:
+    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_2px_18px_-8px_var(--primary)]",
   secondary: "border border-border bg-card text-foreground hover:bg-foreground/5",
   ghost: "text-muted hover:bg-foreground/10 hover:text-foreground",
   danger: "bg-red-600 text-white hover:bg-red-700",

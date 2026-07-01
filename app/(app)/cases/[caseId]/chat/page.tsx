@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { listThreads, listMessages, listDocuments } from "@/lib/data";
 import { createThread } from "@/lib/actions";
 import { redirect } from "next/navigation";
-import { Card } from "@/components/ui";
 import { ChatPanel } from "@/components/chat-panel";
-import { cn } from "@/lib/utils";
+import { ThreadList } from "@/components/thread-list";
+import { Callout } from "@/components/callout";
 
 export default async function ChatPage({
   params,
@@ -30,8 +29,19 @@ export default async function ChatPage({
   const hasDocuments = docs.some((d) => d.status === "ready");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-      <aside className="space-y-3">
+    <div className="space-y-4">
+      {!hasDocuments && (
+        <Callout
+          variant="tip"
+          title="Upload documents to chat with them"
+          action={{ href: `/cases/${caseId}/documents`, label: "Upload documents" }}
+        >
+          Chat answers come from this case&apos;s files. Add some documents
+          first, then ask questions here — each answer cites its source page.
+        </Callout>
+      )}
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        <aside className="space-y-3">
         <form
           action={async () => {
             "use server";
@@ -41,35 +51,17 @@ export default async function ChatPage({
         >
           <button
             type="submit"
-            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-foreground/5"
           >
             + New chat
           </button>
         </form>
 
-        <Card className="overflow-hidden">
-          {threads.length === 0 ? (
-            <p className="px-3 py-3 text-xs text-muted">No conversations yet.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {threads.map((t) => (
-                <li key={t.id}>
-                  <Link
-                    href={`/cases/${caseId}/chat?thread=${t.id}`}
-                    className={cn(
-                      "block truncate px-3 py-2 text-sm",
-                      t.id === activeThreadId
-                        ? "bg-primary/5 font-medium text-primary"
-                        : "text-muted hover:bg-slate-50 hover:text-foreground",
-                    )}
-                  >
-                    {t.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+        <ThreadList
+          caseId={caseId}
+          threads={threads}
+          activeThreadId={activeThreadId}
+        />
       </aside>
 
       <ChatPanel
@@ -79,6 +71,7 @@ export default async function ChatPage({
         initialMessages={messages}
         hasDocuments={hasDocuments}
       />
+      </div>
     </div>
   );
 }

@@ -2,12 +2,17 @@
 
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureOrgForUser } from "@/lib/orgs";
 import { createAndSendVerification } from "@/lib/verification";
 
 export type AuthState = { error?: string; notice?: string } | undefined;
+
+/** Sign out and return to the marketing site. Usable from client components. */
+export async function signOutAction() {
+  await signOut({ redirectTo: "/" });
+}
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 

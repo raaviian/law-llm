@@ -20,7 +20,7 @@ export function AuthShell({
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
+      <div className="relative hidden flex-col justify-between bg-surface-deep p-12 text-on-deep lg:flex">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-lg font-bold tracking-tight"
@@ -38,7 +38,7 @@ export function AuthShell({
             {valueProps.map((v) => (
               <li
                 key={v}
-                className="flex items-start gap-3 text-lg text-primary-foreground/90"
+                className="flex items-start gap-3 text-lg text-on-deep/90"
               >
                 <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/15 text-xs">
                   ✓
@@ -48,7 +48,7 @@ export function AuthShell({
             ))}
           </ul>
         </div>
-        <p className="text-base text-primary-foreground/70">
+        <p className="text-base text-on-deep/70">
           Built for solo lawyers and small firms.
         </p>
       </div>

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { switchOrg } from "@/lib/actions";
+import { useLoadingEffect } from "@/components/loading-overlay";
 
 interface OrgOption {
   org_id: string;
@@ -24,6 +25,7 @@ export function OrgSwitcher({
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  useLoadingEffect(pending);
 
   if (orgs.length <= 1) return null;
 

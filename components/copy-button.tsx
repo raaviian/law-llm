@@ -22,7 +22,7 @@ export function CopyButton({
         setTimeout(() => setCopied(false), 1500);
       }}
       className={cn(
-        "rounded-md border border-border bg-white px-2.5 py-1 text-xs font-medium hover:bg-slate-50",
+        "rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium hover:bg-foreground/5",
         className,
       )}
     >

@@ -129,21 +129,21 @@ export function ChatPanel({
               className={
                 m.role === "user"
                   ? "max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground"
-                  : "max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-foreground"
+                  : "max-w-[85%] rounded-2xl rounded-bl-sm bg-foreground/10 px-4 py-2.5 text-sm text-foreground"
               }
             >
               <p className="whitespace-pre-wrap">
                 {m.content || (m.streaming ? "…" : "")}
               </p>
               {m.role === "assistant" && m.citations.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-200 pt-2">
+                <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border pt-2">
                   {m.citations.map((c) => (
                     <a
                       key={c.label}
                       href={`/cases/${caseId}/documents/${c.documentId}${c.page ? `?page=${c.page}` : ""}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded bg-white px-1.5 py-0.5 text-xs text-muted ring-1 ring-slate-200 transition-colors hover:text-primary hover:ring-primary/40"
+                      className="rounded bg-card px-1.5 py-0.5 text-xs text-muted ring-1 ring-border transition-colors hover:text-primary hover:ring-primary/40"
                       title={`Open ${c.documentName}${c.page ? ` at page ${c.page}` : ""}`}
                     >
                       [{c.label}] {c.documentName}
@@ -171,7 +171,7 @@ export function ChatPanel({
             }}
             rows={1}
             placeholder="Ask about this case…"
-            className="max-h-32 flex-1 resize-none rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="max-h-32 flex-1 resize-none rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
           <Button onClick={send} disabled={busy || !input.trim()}>
             {busy ? "…" : "Send"}

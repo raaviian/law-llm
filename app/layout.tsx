@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-// Body: Inter (clean, highly legible). Headings: Source Serif 4 (a refined
-// serif that reads as professional/legal). Wired to Tailwind via CSS variables.
+// Body: Inter (clean, highly legible). Headings/display: Space Grotesk (a
+// geometric sans that reads modern + technical). Wired via CSS variables.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
 
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
   display: "swap",
 });
@@ -31,14 +31,14 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${sourceSerif.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <head>
-        {/* Apply the saved (or OS-preferred) theme before paint to avoid a
-            flash of the wrong theme. Additive class so font classes survive. */}
+        {/* Apply the theme before paint to avoid a flash. The app is dark-first:
+            new visitors get dark unless they've explicitly chosen light. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':true;if(d)document.documentElement.classList.add('dark');}catch(e){document.documentElement.classList.add('dark');}})();`,
           }}
         />
       </head>

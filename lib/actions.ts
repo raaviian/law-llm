@@ -117,9 +117,20 @@ export async function updateCase(caseId: string, formData: FormData) {
   revalidatePath(`/cases/${caseId}`);
 }
 
-export async function deleteCase(caseId: string) {
+export async function deleteCase(caseId: string, confirmTitle?: string) {
   const { user, orgId } = await requireUserAndOrg();
   const supabase = await createUserClient(user.id);
+
+  // Defense-in-depth: when a confirmation title is supplied (sensitive delete
+  // UI), it must match the case title exactly before we destroy anything.
+  if (confirmTitle !== undefined) {
+    const target = await getCase(user.id, caseId);
+    if (!target) throw new Error("Case not found.");
+    if (confirmTitle.trim() !== target.title.trim()) {
+      throw new Error("The typed name does not match the case title.");
+    }
+  }
+
   const { error } = await supabase.from("cases").delete().eq("id", caseId);
   if (error) throw new Error(error.message);
 
@@ -134,8 +145,8 @@ export async function deleteCase(caseId: string) {
     summary: "Deleted a case",
   });
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  revalidatePath("/cases");
+  redirect("/cases");
 }
 
 // --- Team / invitations ------------------------------------------------------
@@ -310,6 +321,32 @@ async function assertCaseManager(caseId: string) {
   return { user, admin, orgId: c.org_id as string };
 }
 
+export async function setCaseStatus(
+  caseId: string,
+  status: "open" | "active" | "closed",
+) {
+  if (!["open", "active", "closed"].includes(status)) {
+    throw new Error("Invalid status.");
+  }
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+  await admin
+    .from("cases")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", caseId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "case.update",
+    targetType: "case",
+    targetId: caseId,
+    caseId,
+    summary: `Set status to ${status}`,
+  });
+  revalidatePath(`/cases/${caseId}`);
+  revalidatePath("/cases");
+}
+
 export async function setCaseVisibility(
   caseId: string,
   visibility: "org" | "private",
@@ -430,6 +467,62 @@ export async function deleteNote(caseId: string, noteId: string) {
   revalidatePath(`/cases/${caseId}/notes`);
 }
 
+// --- Drafts ------------------------------------------------------------------
+export async function saveDraft(
+  caseId: string,
+  input: { docType: string; title: string; content: string; instructions?: string },
+): Promise<string> {
+  const user = await requireUser();
+  const orgId = await caseOrgId(user.id, caseId);
+  const content = input.content.trim();
+  if (!content) throw new Error("Nothing to save.");
+  const supabase = await createUserClient(user.id);
+  const { data, error } = await supabase
+    .from("drafts")
+    .insert({
+      case_id: caseId,
+      org_id: orgId,
+      doc_type: input.docType,
+      title: input.title.trim() || "Draft",
+      content,
+      instructions: input.instructions?.trim() || null,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "draft.create",
+    targetType: "draft",
+    targetId: data.id,
+    caseId,
+    summary: `Saved draft “${input.title.trim() || "Draft"}”`,
+  });
+  revalidatePath(`/cases/${caseId}/draft`);
+  return data.id as string;
+}
+
+export async function deleteDraft(caseId: string, draftId: string) {
+  const { user, orgId } = await requireUserAndOrg();
+  const supabase = await createUserClient(user.id);
+  const { error } = await supabase.from("drafts").delete().eq("id", draftId);
+  if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "draft.delete",
+    targetType: "draft",
+    targetId: draftId,
+    caseId,
+    summary: "Deleted a draft",
+  });
+  revalidatePath(`/cases/${caseId}/draft`);
+}
+
 // --- Deadlines ---------------------------------------------------------------
 export async function createDeadline(caseId: string, formData: FormData) {
   const user = await requireUser();
@@ -472,6 +565,24 @@ export async function toggleDeadline(
 
 // --- Strategy ----------------------------------------------------------------
 type StrategyColumn = "objectives" | "arguments" | "risks" | "timeline";
+
+// FormData wrappers so the client StrategyBoard can use these in <form action>
+// (client components can't declare inline server actions).
+export async function addStrategyItemForm(
+  caseId: string,
+  column: StrategyColumn,
+  formData: FormData,
+) {
+  await addStrategyItem(caseId, column, String(formData.get("text") ?? ""));
+}
+
+export async function removeStrategyItemForm(
+  caseId: string,
+  column: StrategyColumn,
+  itemId: string,
+) {
+  await removeStrategyItem(caseId, column, itemId);
+}
 
 export async function addStrategyItem(
   caseId: string,
@@ -628,6 +739,112 @@ export async function createThread(caseId: string): Promise<string> {
   });
   revalidatePath(`/cases/${caseId}/chat`);
   return data.id as string;
+}
+
+export async function renameThread(
+  caseId: string,
+  threadId: string,
+  title: string,
+) {
+  const { user, orgId } = await requireUserAndOrg();
+  const clean = title.trim().slice(0, 120);
+  if (!clean) return;
+  const supabase = await createUserClient(user.id);
+  const { error } = await supabase
+    .from("chat_threads")
+    .update({ title: clean })
+    .eq("id", threadId);
+  if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "thread.update",
+    targetType: "chat",
+    targetId: threadId,
+    caseId,
+    summary: `Renamed a chat to “${clean}”`,
+  });
+  revalidatePath(`/cases/${caseId}/chat`);
+}
+
+export async function deleteThread(caseId: string, threadId: string) {
+  const { user, orgId } = await requireUserAndOrg();
+  const supabase = await createUserClient(user.id);
+  // chat_messages.thread_id is ON DELETE CASCADE, so messages go with it.
+  const { error } = await supabase.from("chat_threads").delete().eq("id", threadId);
+  if (error) throw new Error(error.message);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "thread.delete",
+    targetType: "chat",
+    targetId: threadId,
+    caseId,
+    summary: "Deleted a chat",
+  });
+  revalidatePath(`/cases/${caseId}/chat`);
+}
+
+/**
+ * Share or unshare a chat thread. Only a case manager (owner/admin or the case
+ * creator) may change sharing. Pass minRole = member|admin|owner to share with
+ * firm members at/above that role, or null to stop sharing. Returns the
+ * shareable URL (or null when unshared).
+ */
+export async function setThreadShare(
+  caseId: string,
+  threadId: string,
+  minRole: "member" | "admin" | "owner" | null,
+): Promise<string | null> {
+  const { user, admin, orgId } = await assertCaseManager(caseId);
+
+  if (minRole === null) {
+    await admin
+      .from("chat_threads")
+      .update({ share_token: null, share_min_role: null })
+      .eq("id", threadId);
+    await recordAudit({
+      orgId,
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "thread.unshare",
+      targetType: "chat",
+      targetId: threadId,
+      caseId,
+      summary: "Stopped sharing a chat",
+    });
+    revalidatePath(`/cases/${caseId}/chat`);
+    return null;
+  }
+
+  // Reuse an existing token so the link stays stable across role changes.
+  const { data: existing } = await admin
+    .from("chat_threads")
+    .select("share_token")
+    .eq("id", threadId)
+    .maybeSingle();
+  const token =
+    (existing?.share_token as string | null) ??
+    crypto.randomUUID().replace(/-/g, "");
+
+  await admin
+    .from("chat_threads")
+    .update({ share_token: token, share_min_role: minRole })
+    .eq("id", threadId);
+  await recordAudit({
+    orgId,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "thread.share",
+    targetType: "chat",
+    targetId: threadId,
+    caseId,
+    summary: `Shared a chat with ${minRole}s and above`,
+  });
+  revalidatePath(`/cases/${caseId}/chat`);
+  return `${env.appUrl}/shared/chat/${token}`;
 }
 
 export async function deleteDocument(caseId: string, documentId: string) {

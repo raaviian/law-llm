@@ -6,15 +6,17 @@ import {
   listNotes,
   listDeadlines,
 } from "@/lib/data";
-import { deleteCase } from "@/lib/actions";
 import {
   getOrgRole,
   listOrgMembers,
   listCaseAccess,
   canManageCase,
 } from "@/lib/access";
-import { Button, Card } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
+import { Callout } from "@/components/callout";
 import { CaseAccess } from "@/components/case-access";
+import { CaseStatusSelect } from "@/components/case-status-select";
+import { DeleteCaseDialog } from "@/components/delete-case-dialog";
 import { formatDate } from "@/lib/utils";
 
 export default async function CaseOverviewPage({
@@ -49,9 +51,28 @@ export default async function CaseOverviewPage({
     },
   ];
 
+  const readyDocs = docs.filter((d) => d.status === "ready").length;
+  const processingDocs = docs.some((d) => d.status === "processing");
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
+        {docs.length === 0 ? (
+          <Callout
+            variant="next"
+            title="Next step: upload your documents"
+            action={{ href: `/cases/${caseId}/documents`, label: "Upload documents" }}
+          >
+            Add this case&apos;s files (PDF, Word, or text). We read them so you
+            can ask questions, draft documents, and plan strategy from them.
+          </Callout>
+        ) : readyDocs === 0 && processingDocs ? (
+          <Callout variant="info" title="We&apos;re reading your files…">
+            Your documents are being read. Chat and drafting will use them as
+            soon as they&apos;re ready.
+          </Callout>
+        ) : null}
+
         <Card className="p-6">
           <h2 className="text-sm font-semibold text-foreground">Summary</h2>
           <p className="mt-2 text-sm text-muted">
@@ -95,6 +116,16 @@ export default async function CaseOverviewPage({
         <Card className="p-6">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Details</h2>
           <dl className="space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted">Status</dt>
+              <dd>
+                {canManage ? (
+                  <CaseStatusSelect caseId={caseId} status={c.status} />
+                ) : (
+                  <Badge status={c.status} />
+                )}
+              </dd>
+            </div>
             <Detail label="Client" value={c.client_name} />
             <Detail label="Case number" value={c.case_number} />
             <Detail label="Court" value={c.court} />
@@ -118,23 +149,7 @@ export default async function CaseOverviewPage({
           />
         )}
 
-        <Card className="border-red-200 p-6">
-          <h2 className="text-sm font-semibold text-foreground">Danger zone</h2>
-          <p className="mt-1 text-sm text-muted">
-            Deleting a case removes its documents, notes, and chats.
-          </p>
-          <form
-            action={async () => {
-              "use server";
-              await deleteCase(caseId);
-            }}
-            className="mt-3"
-          >
-            <Button type="submit" variant="danger" size="sm">
-              Delete case
-            </Button>
-          </form>
-        </Card>
+        <DeleteCaseDialog caseId={caseId} caseTitle={c.title} />
       </div>
     </div>
   );

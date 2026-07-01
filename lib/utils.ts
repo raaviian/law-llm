@@ -25,3 +25,21 @@ export function formatDateTime(value: string | Date | null | undefined): string 
     minute: "2-digit",
   });
 }
+
+export function formatBytes(bytes: number | null | undefined): string {
+  if (!bytes) return "—";
+  const units = ["B", "KB", "MB", "GB"];
+  let v = bytes;
+  let u = 0;
+  while (v >= 1024 && u < units.length - 1) {
+    v /= 1024;
+    u++;
+  }
+  return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
+}
+
+/** True when `iso` is within the last `days` days. Used by list date filters. */
+export function withinDays(iso: string, days: number): boolean {
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) && Date.now() - t <= days * 24 * 60 * 60 * 1000;
+}

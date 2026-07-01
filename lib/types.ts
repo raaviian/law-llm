@@ -46,6 +46,18 @@ export interface Note {
   updated_at: string;
 }
 
+export interface Draft {
+  id: string;
+  case_id: string;
+  org_id: string;
+  doc_type: string;
+  title: string;
+  content: string;
+  instructions: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Deadline {
   id: string;
   case_id: string;
@@ -73,6 +85,9 @@ export interface ChatThread {
   id: string;
   case_id: string;
   title: string;
+  created_by: string | null;
+  share_token: string | null;
+  share_min_role: "member" | "admin" | "owner" | null;
   created_at: string;
 }
 

@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   ChatThread,
   Deadline,
+  Draft,
   Note,
   Strategy,
 } from "@/lib/types";
@@ -78,6 +79,33 @@ export async function listNotes(
     .order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as Note[];
+}
+
+export async function listDrafts(
+  userId: string,
+  caseId: string,
+): Promise<Draft[]> {
+  const supabase = await createUserClient(userId);
+  const { data, error } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("case_id", caseId)
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Draft[];
+}
+
+export async function getDraft(
+  userId: string,
+  draftId: string,
+): Promise<Draft | null> {
+  const supabase = await createUserClient(userId);
+  const { data } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("id", draftId)
+    .maybeSingle();
+  return (data as Draft) ?? null;
 }
 
 export async function listDeadlines(
@@ -154,13 +182,14 @@ export interface DashboardData {
   deadlines: (Deadline & { case_title?: string })[];
   activity: AuditLog[];
   docCount: number;
+  threadCount: number;
   openDeadlineCount: number;
 }
 
 /** Everything the dashboard needs, in one round of parallel RLS-scoped reads. */
 export async function getDashboardData(userId: string): Promise<DashboardData> {
   const supabase = await createUserClient(userId);
-  const [casesRes, deadlinesRes, docsRes, deadlineCountRes, activityRes] =
+  const [casesRes, deadlinesRes, docsRes, threadsRes, deadlineCountRes, activityRes] =
     await Promise.all([
       supabase.from("cases").select("*").order("updated_at", { ascending: false }),
       supabase
@@ -170,6 +199,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         .order("due_at", { ascending: true })
         .limit(6),
       supabase.from("documents").select("id", { count: "exact", head: true }),
+      supabase.from("chat_threads").select("id", { count: "exact", head: true }),
       supabase
         .from("deadlines")
         .select("id", { count: "exact", head: true })
@@ -189,6 +219,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     })),
     activity: (activityRes.data ?? []) as AuditLog[],
     docCount: docsRes.count ?? 0,
+    threadCount: threadsRes.count ?? 0,
     openDeadlineCount: deadlineCountRes.count ?? 0,
   };
 }

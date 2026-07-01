@@ -1,19 +1,7 @@
 import { requireUser } from "@/lib/session";
 import { getStrategy, listDocuments } from "@/lib/data";
-import { addStrategyItem, removeStrategyItem } from "@/lib/actions";
-import { Card } from "@/components/ui";
 import { GenerateStrategyButton } from "@/components/generate-strategy-button";
-import { PendingButton } from "@/components/pending-button";
-import type { StrategyItem } from "@/lib/types";
-
-type Column = "objectives" | "arguments" | "risks" | "timeline";
-
-const columns: { key: Column; title: string; hint: string }[] = [
-  { key: "objectives", title: "Objectives", hint: "What does the client want to achieve?" },
-  { key: "arguments", title: "Arguments", hint: "Key arguments to advance." },
-  { key: "risks", title: "Risks", hint: "Weaknesses and counter-arguments." },
-  { key: "timeline", title: "Timeline", hint: "Sequence of steps and dates." },
-];
+import { StrategyBoard, type StrategyData } from "@/components/strategy-board";
 
 export default async function StrategyPage({
   params,
@@ -28,85 +16,26 @@ export default async function StrategyPage({
   ]);
   const hasDocuments = docs.some((d) => d.status === "ready");
 
+  const data: StrategyData = {
+    objectives: strategy?.objectives ?? [],
+    arguments: strategy?.arguments ?? [],
+    risks: strategy?.risks ?? [],
+    timeline: strategy?.timeline ?? [],
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Court strategy</h2>
           <p className="text-sm text-muted">
-            Plan your approach across four pillars — or generate a first draft
-            from the case files, then edit freely.
+            Plan your case across four areas — Objectives, Arguments, Risks and
+            Timeline — or let AI suggest a first draft from your files, then edit.
           </p>
         </div>
         <GenerateStrategyButton caseId={caseId} hasDocuments={hasDocuments} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {columns.map((col) => {
-          const items = (strategy?.[col.key] as StrategyItem[]) ?? [];
-          return (
-            <Card key={col.key} className="flex flex-col p-4">
-              <h3 className="text-sm font-semibold text-foreground">
-                {col.title}
-              </h3>
-              <p className="mb-3 text-xs text-muted">{col.hint}</p>
-
-              <ul className="mb-3 flex-1 space-y-2">
-                {items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="group flex items-start justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm"
-                  >
-                    <span className="whitespace-pre-wrap">{item.text}</span>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await removeStrategyItem(caseId, col.key, item.id);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className="text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
-                        aria-label="Remove"
-                      >
-                        ×
-                      </button>
-                    </form>
-                  </li>
-                ))}
-                {items.length === 0 && (
-                  <li className="text-xs text-muted">Nothing here yet.</li>
-                )}
-              </ul>
-
-              <form
-                action={async (formData: FormData) => {
-                  "use server";
-                  await addStrategyItem(
-                    caseId,
-                    col.key,
-                    String(formData.get("text") ?? ""),
-                  );
-                }}
-                className="space-y-2"
-              >
-                <textarea
-                  name="text"
-                  rows={2}
-                  required
-                  placeholder={`Add to ${col.title.toLowerCase()}…`}
-                  className="w-full rounded-lg border border-border bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-                <PendingButton
-                  pendingText="Adding…"
-                  className="w-full rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
-                >
-                  Add
-                </PendingButton>
-              </form>
-            </Card>
-          );
-        })}
-      </div>
+      <StrategyBoard caseId={caseId} strategy={data} />
     </div>
   );
 }

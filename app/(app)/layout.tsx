@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { listUserOrgs, getActiveOrgId } from "@/lib/orgs";
 import { AppShell } from "@/components/app-shell";

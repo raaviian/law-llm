@@ -15,7 +15,7 @@ export default async function CasesPage() {
             Cases
           </h1>
           <p className="text-sm text-muted">
-            All matters for your firm — search, filter, and open.
+            All cases for your firm — search, filter, and open.
           </p>
         </div>
         <LinkButton href="/cases/new">+ New case</LinkButton>

@@ -73,9 +73,12 @@ export function EmbedDriver({ documentId }: { documentId: string }) {
       : null;
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted">
+    <span
+      className="inline-flex items-center gap-1.5 text-xs text-muted"
+      title="We're reading this file so the AI can answer questions from it."
+    >
       <span className="h-3 w-3 animate-spin rounded-full border-2 border-foreground/20 border-t-primary" />
-      Indexing{pct !== null ? ` ${pct}%` : "…"}
+      Reading{pct !== null ? ` ${pct}%` : "…"}
     </span>
   );
 }

@@ -13,6 +13,7 @@ import {
   canManageCase,
 } from "@/lib/access";
 import { Badge, Card } from "@/components/ui";
+import { Callout } from "@/components/callout";
 import { CaseAccess } from "@/components/case-access";
 import { CaseStatusSelect } from "@/components/case-status-select";
 import { DeleteCaseDialog } from "@/components/delete-case-dialog";
@@ -50,9 +51,28 @@ export default async function CaseOverviewPage({
     },
   ];
 
+  const readyDocs = docs.filter((d) => d.status === "ready").length;
+  const processingDocs = docs.some((d) => d.status === "processing");
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
+        {docs.length === 0 ? (
+          <Callout
+            variant="next"
+            title="Next step: upload your documents"
+            action={{ href: `/cases/${caseId}/documents`, label: "Upload documents" }}
+          >
+            Add this case&apos;s files (PDF, Word, or text). We read them so you
+            can ask questions, draft documents, and plan strategy from them.
+          </Callout>
+        ) : readyDocs === 0 && processingDocs ? (
+          <Callout variant="info" title="We&apos;re reading your files…">
+            Your documents are being read. Chat and drafting will use them as
+            soon as they&apos;re ready.
+          </Callout>
+        ) : null}
+
         <Card className="p-6">
           <h2 className="text-sm font-semibold text-foreground">Summary</h2>
           <p className="mt-2 text-sm text-muted">

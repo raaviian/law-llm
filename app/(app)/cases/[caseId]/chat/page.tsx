@@ -4,6 +4,7 @@ import { createThread } from "@/lib/actions";
 import { redirect } from "next/navigation";
 import { ChatPanel } from "@/components/chat-panel";
 import { ThreadList } from "@/components/thread-list";
+import { Callout } from "@/components/callout";
 
 export default async function ChatPage({
   params,
@@ -28,8 +29,19 @@ export default async function ChatPage({
   const hasDocuments = docs.some((d) => d.status === "ready");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-      <aside className="space-y-3">
+    <div className="space-y-4">
+      {!hasDocuments && (
+        <Callout
+          variant="tip"
+          title="Upload documents to chat with them"
+          action={{ href: `/cases/${caseId}/documents`, label: "Upload documents" }}
+        >
+          Chat answers come from this case&apos;s files. Add some documents
+          first, then ask questions here — each answer cites its source page.
+        </Callout>
+      )}
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        <aside className="space-y-3">
         <form
           action={async () => {
             "use server";
@@ -59,6 +71,7 @@ export default async function ChatPage({
         initialMessages={messages}
         hasDocuments={hasDocuments}
       />
+      </div>
     </div>
   );
 }

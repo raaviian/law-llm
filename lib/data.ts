@@ -182,13 +182,14 @@ export interface DashboardData {
   deadlines: (Deadline & { case_title?: string })[];
   activity: AuditLog[];
   docCount: number;
+  threadCount: number;
   openDeadlineCount: number;
 }
 
 /** Everything the dashboard needs, in one round of parallel RLS-scoped reads. */
 export async function getDashboardData(userId: string): Promise<DashboardData> {
   const supabase = await createUserClient(userId);
-  const [casesRes, deadlinesRes, docsRes, deadlineCountRes, activityRes] =
+  const [casesRes, deadlinesRes, docsRes, threadsRes, deadlineCountRes, activityRes] =
     await Promise.all([
       supabase.from("cases").select("*").order("updated_at", { ascending: false }),
       supabase
@@ -198,6 +199,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         .order("due_at", { ascending: true })
         .limit(6),
       supabase.from("documents").select("id", { count: "exact", head: true }),
+      supabase.from("chat_threads").select("id", { count: "exact", head: true }),
       supabase
         .from("deadlines")
         .select("id", { count: "exact", head: true })
@@ -217,6 +219,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     })),
     activity: (activityRes.data ?? []) as AuditLog[],
     docCount: docsRes.count ?? 0,
+    threadCount: threadsRes.count ?? 0,
     openDeadlineCount: deadlineCountRes.count ?? 0,
   };
 }

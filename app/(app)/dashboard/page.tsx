@@ -10,12 +10,13 @@ import {
   SparkIcon,
   ArrowRightIcon,
 } from "@/components/icons";
+import { GettingStarted } from "@/components/getting-started";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const { cases, deadlines, activity, docCount, openDeadlineCount } =
+  const { cases, deadlines, activity, docCount, threadCount, openDeadlineCount } =
     await getDashboardData(user.id);
 
   const active = cases.filter((c) => c.status === "active").length;
@@ -25,8 +26,8 @@ export default async function DashboardPage() {
   const firstName = (user.name || "there").split(" ")[0];
 
   const stats = [
-    { icon: FolderIcon, label: "Total matters", value: cases.length, accent: false },
-    { icon: ScaleIcon, label: "Active matters", value: active, accent: true },
+    { icon: FolderIcon, label: "Total cases", value: cases.length, accent: false },
+    { icon: ScaleIcon, label: "Active cases", value: active, accent: true },
     { icon: CalendarIcon, label: "Open deadlines", value: openDeadlineCount, accent: false },
     { icon: DocCheckIcon, label: "Documents", value: docCount, accent: false },
   ];
@@ -48,6 +49,13 @@ export default async function DashboardPage() {
         </div>
         <LinkButton href="/cases/new">+ New case</LinkButton>
       </div>
+
+      <GettingStarted
+        hasCase={cases.length > 0}
+        hasDocument={docCount > 0}
+        hasChat={threadCount > 0}
+        firstCaseId={cases[0]?.id}
+      />
 
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -75,8 +83,8 @@ export default async function DashboardPage() {
 
       {cases.length === 0 ? (
         <EmptyState
-          title="No matters yet"
-          description="Create your first case to start uploading documents and chatting with your files."
+          title="No cases yet"
+          description="Create your first case to start uploading documents and asking questions about your files."
           action={<LinkButton href="/cases/new">Create a case</LinkButton>}
         />
       ) : (
@@ -86,7 +94,7 @@ export default async function DashboardPage() {
             {/* Status overview */}
             <Card className="p-5">
               <h2 className="text-sm font-semibold text-foreground">
-                Matters by status
+                Cases by status
               </h2>
               <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-foreground/10">
                 {segments.map(
@@ -115,7 +123,7 @@ export default async function DashboardPage() {
             <Card>
               <div className="flex items-center justify-between border-b border-border px-5 py-3">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Recent matters
+                  Recent cases
                 </h2>
                 <span className="text-xs text-muted">{cases.length} total</span>
               </div>

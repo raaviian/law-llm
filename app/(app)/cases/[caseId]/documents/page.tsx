@@ -23,7 +23,8 @@ export default async function DocumentsPage({
       {docs.length === 0 ? (
         <EmptyState
           title="No documents yet"
-          description="Upload case files (PDF, DOCX, TXT). They'll be analyzed so you can chat with them."
+          description="Upload your case files (PDF, Word, or text). We read them so you can ask questions about them and draft documents."
+          action={<DocumentUploader caseId={caseId} />}
         />
       ) : (
         <DocumentsView caseId={caseId} docs={docs} />

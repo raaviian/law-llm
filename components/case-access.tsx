@@ -26,7 +26,7 @@ export function CaseAccess({
     <Card className="p-6">
       <h2 className="text-sm font-semibold text-foreground">Access</h2>
       <p className="mt-1 text-sm text-muted">
-        Control who in your firm can see this matter.
+        Control who in your firm can see this case.
       </p>
 
       <div className="mt-3 inline-flex rounded-lg border border-border p-0.5">

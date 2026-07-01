@@ -51,7 +51,7 @@ export function CasesView({ cases }: { cases: Case[] }) {
       renderEmpty={
         <EmptyState
           title="No cases found"
-          description="Try a different search, or create a new matter."
+          description="Try a different search, or create a new case."
           action={<LinkButton href="/cases/new">+ New case</LinkButton>}
         />
       }

@@ -4,6 +4,7 @@ import { requireUserAndOrg } from "@/lib/session";
 import { canCreateCase } from "@/lib/limits";
 import { Card, Input, Label, LinkButton } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
+import { InfoTip } from "@/components/info-tip";
 
 export default async function NewCasePage() {
   const { orgId } = await requireUserAndOrg();
@@ -15,6 +16,10 @@ export default async function NewCasePage() {
         ← Back to cases
       </Link>
       <h1 className="mt-3 text-2xl font-semibold text-foreground">New case</h1>
+      <p className="mt-1 text-sm text-muted">
+        A case is a workspace for one client. Only a title is required — you can
+        add the rest later, then upload documents.
+      </p>
 
       {!allowed ? (
         <Card className="mt-6 p-8 text-center">
@@ -42,11 +47,17 @@ export default async function NewCasePage() {
               <Input id="client_name" name="client_name" placeholder="Acme Corp" />
             </div>
             <div>
-              <Label htmlFor="case_number">Case number</Label>
+              <Label htmlFor="case_number">
+                Case number{" "}
+                <InfoTip text="The reference the court gives this case, if you have one. Optional." />
+              </Label>
               <Input id="case_number" name="case_number" placeholder="2026-CV-1234" />
             </div>
             <div>
-              <Label htmlFor="jurisdiction">Jurisdiction</Label>
+              <Label htmlFor="jurisdiction">
+                Jurisdiction{" "}
+                <InfoTip text="The country or region whose laws apply — e.g. England & Wales, or New York." />
+              </Label>
               <Input
                 id="jurisdiction"
                 name="jurisdiction"
@@ -54,7 +65,10 @@ export default async function NewCasePage() {
               />
             </div>
             <div>
-              <Label htmlFor="court">Court</Label>
+              <Label htmlFor="court">
+                Court{" "}
+                <InfoTip text="The court handling the case, if any — e.g. High Court. Optional." />
+              </Label>
               <Input id="court" name="court" placeholder="High Court" />
             </div>
           </div>
@@ -63,7 +77,7 @@ export default async function NewCasePage() {
             <select
               id="status"
               name="status"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               defaultValue="open"
             >
               <option value="open">Open</option>
@@ -77,8 +91,8 @@ export default async function NewCasePage() {
               id="description"
               name="description"
               rows={3}
-              placeholder="Short summary of the matter…"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
+              placeholder="Short summary of the case…"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">

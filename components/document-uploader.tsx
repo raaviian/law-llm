@@ -52,7 +52,7 @@ export function DocumentUploader({ caseId }: { caseId: string }) {
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {busy ? "Uploading & analyzing…" : "Upload documents"}
+        {busy ? "Uploading & reading your files…" : "Upload documents"}
       </Button>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       <p className="mt-2 text-xs text-muted">

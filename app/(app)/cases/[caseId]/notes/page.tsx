@@ -21,7 +21,7 @@ export default async function NotesPage({
         {notes.length === 0 ? (
           <EmptyState
             title="No notes yet"
-            description="Capture observations, call summaries, and to-dos for this matter."
+            description="Capture observations, call summaries, and to-dos for this case."
           />
         ) : (
           <NotesView caseId={caseId} notes={notes} />

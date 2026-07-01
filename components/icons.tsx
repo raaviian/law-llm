@@ -225,3 +225,25 @@ export const LogOutIcon = (p: P) => (
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
   </Base>
 );
+export const InfoIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8h.01" />
+  </Base>
+);
+export const UploadIcon = (p: P) => (
+  <Base {...p}>
+    <path d="M12 15V4M8 8l4-4 4 4M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+  </Base>
+);
+export const CheckCircleIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </Base>
+);
+export const CircleIcon = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+  </Base>
+);

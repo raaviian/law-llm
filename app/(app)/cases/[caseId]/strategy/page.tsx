@@ -29,8 +29,8 @@ export default async function StrategyPage({
         <div>
           <h2 className="text-lg font-semibold text-foreground">Court strategy</h2>
           <p className="text-sm text-muted">
-            Plan your approach across four pillars — or generate a first draft
-            from the case files, then edit freely.
+            Plan your case across four areas — Objectives, Arguments, Risks and
+            Timeline — or let AI suggest a first draft from your files, then edit.
           </p>
         </div>
         <GenerateStrategyButton caseId={caseId} hasDocuments={hasDocuments} />
